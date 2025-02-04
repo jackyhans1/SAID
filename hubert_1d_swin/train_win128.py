@@ -77,7 +77,7 @@ def plot_metrics(train_values, val_values, metric_name, save_path):
 
 if __name__ == "__main__":
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     DATA_DIR = "/data/alc_jihan/extracted_features"
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     BATCH_SIZE = 64
     NUM_EPOCHS = 50
     LR = 1e-4
-    CHECKPOINT_DIR = "/home/ai/said/hubert_1d_swin/checkpoint"
+    CHECKPOINT_DIR = "/home/ai/said/hubert_1d_swin/checkpoint_win128"
     os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
     df = pd.read_csv(CSV_PATH)
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     # num_swin_layers를 4로 설정하고, 각 스테이지에 맞게 swin_depth와 swin_num_heads를 수정합니다.
     model = Swin1D(
         max_length=MAX_SEQ_LENGTH, 
-        window_size=8, 
+        window_size=128, 
         dim=1024, 
         feature_dim=1024, 
         num_swin_layers=2, 
