@@ -102,7 +102,7 @@ criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
 patience = 5
-best_val_f1 = 0.0  # Early stopping 기준: best macro F1-score
+best_val_uar = 0.0  # Early stopping 기준: best UAR (macro Recall)
 early_stop_counter = 0
 
 # Confusion Matrix 시각화 함수
@@ -201,12 +201,12 @@ for epoch in range(epochs):
     print(f"Epoch {epoch + 1}/{epochs} - Train Loss: {train_loss:.4f}, Train Acc: {train_accuracy:.4f}, Train UAR: {train_uar:.4f}, Train F1: {train_f1:.4f}")
     print(f"Validation Loss: {val_loss:.4f}, Validation Acc: {val_accuracy:.4f}, Validation UAR: {val_uar:.4f}, Validation F1: {val_f1:.4f}")
 
-    # Early Stopping: validation macro F1-score 기준 (F1가 높아지면 저장)
-    if val_f1 > best_val_f1:
-        best_val_f1 = val_f1
+    # Early Stopping: validation UAR 기준 (UAR가 높아지면 저장)
+    if val_uar > best_val_uar:
+        best_val_uar = val_uar
         early_stop_counter = 0
         torch.save(model.state_dict(), os.path.join(CHECKPOINT_DIR, "best_model_epoch.pth"))
-        print(f"Best validation F1 updated to {best_val_f1:.4f} -- model saved.")
+        print(f"Best validation UAR updated to {best_val_uar:.4f} -- model saved.")
     else:
         early_stop_counter += 1
         print(f"Early stopping counter: {early_stop_counter} / {patience}")

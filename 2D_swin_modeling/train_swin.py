@@ -15,7 +15,7 @@ import pandas as pd
 # 경로 설정
 CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
 DATA_PATH = "/data/alc_jihan/melspectrograms_for_swin"
-CHECKPOINT_DIR = '/home/ai/said/swin_modeling/checkpoint'
+CHECKPOINT_DIR = '/home/ai/said/2D_swin_modeling/checkpoint'
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
 # CSV 데이터 로드

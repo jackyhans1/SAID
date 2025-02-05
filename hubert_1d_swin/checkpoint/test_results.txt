@@ -1,5 +1,5 @@
 Test Results:
-Loss: 0.5016
-Accuracy: 0.7368
-UAR (Unweighted Average Recall): 0.7541
-Macro F1-score: 0.7235
+Loss: 0.4891
+Accuracy: 0.7561
+UAR (Unweighted Average Recall): 0.7558
+Macro F1-score: 0.7371

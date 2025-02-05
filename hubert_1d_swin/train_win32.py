@@ -7,6 +7,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from segdataset import SegmentedAudioDataset, collate_fn
 from swin_transformer_1d import Swin1D
+import warnings
+warnings.simplefilter("ignore", FutureWarning)
 
 def train_epoch(model, dataloader, optimizer, criterion, device):
     model.train()
@@ -77,7 +79,7 @@ def plot_metrics(train_values, val_values, metric_name, save_path):
 
 if __name__ == "__main__":
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     DATA_DIR = "/data/alc_jihan/extracted_features"
@@ -150,9 +152,9 @@ if __name__ == "__main__":
     train_uars, val_uars = [], []
     train_f1s, val_f1s = [], []
 
-    # Early stopping 기준을 validation의 macro F1-score로 설정합니다.
-    best_val_f1 = 0.0
-    patience = 5
+    # Early stopping 기준을 validation의 UAR 값으로 설정
+    best_val_uar = 0.0
+    patience = 10
     early_stop_counter = 0
 
     for epoch in range(NUM_EPOCHS):
@@ -173,13 +175,14 @@ if __name__ == "__main__":
         print(f"Val Loss: {val_loss:.4f}, Acc: {val_acc:.4f}, UAR: {val_uar:.4f}, F1: {val_f1:.4f}")
 
         # Early stopping: validation Macro F1-score 기준으로 개선되지 않으면 카운터 증가
-        if val_f1 > best_val_f1:
-            best_val_f1 = val_f1
+        if val_uar > best_val_uar:
+            best_val_uar = val_uar
             early_stop_counter = 0
             torch.save(model.state_dict(), os.path.join(CHECKPOINT_DIR, "best_model.pth"))
             print("Saved best model.")
         else:
             early_stop_counter += 1
+            print(f"early stopping counter: {early_stop_counter} / {patience}")
             if early_stop_counter >= patience:
                 print("Early stopping triggered!")
                 break
