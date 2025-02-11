@@ -4,7 +4,6 @@ import time
 import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score
-from imblearn.over_sampling import SMOTE  # SMOTE 적용
 
 # 데이터 로드
 DATA_PATH = "/data/alc_jihan/extracted_features_whisper_disfluency/all_data_Disfluency_features_more_added.csv"
@@ -16,35 +15,32 @@ df = pd.read_csv(DATA_PATH)
 df = df[df['Task'].isin(['dialogue', 'monologue'])]
 
 # Feature 및 Label 설정
-X = df.drop(columns=['Filename', 'SubjectID', 'Class', 'Split', 'Task'])  
-y = (df['Class'] == 'Intoxicated').astype(int)  
+X = df.drop(columns=['Filename', 'SubjectID', 'Class', 'Split', 'Task'])  # Feature 선택
+y = (df['Class'] == 'Intoxicated').astype(int)  # Sober=0, Intoxicated=1 변환
 
-# 데이터 분할
+# 데이터 분할 (CSV에서 'Split' 컬럼 활용)
 X_train, y_train = X[df['Split'] == 'train'], y[df['Split'] == 'train']
 X_val, y_val = X[df['Split'] == 'val'], y[df['Split'] == 'val']
 X_test, y_test = X[df['Split'] == 'test'], y[df['Split'] == 'test']
 
-# ✅ SMOTE 적용 (소수 클래스 오버샘플링)
-smote = SMOTE(random_state=42)
-X_train_resampled, y_train_resampled = smote.fit_resample(X_train, y_train)
-
-print(f"Train Data (After SMOTE): {X_train_resampled.shape}, Val Data: {X_val.shape}, Test Data: {X_test.shape}")
+print(f"Train Data: {X_train.shape}, Val Data: {X_val.shape}, Test Data: {X_test.shape}")
 
 # Random Forest 모델 설정
-rf_model = RandomForestClassifier(
-    n_estimators=500,
-    max_depth=10,
-    min_samples_split=3,
-    min_samples_leaf=1,
-    max_features='sqrt',
-    class_weight='balanced',  # 클래스 불균형 보정
-    n_jobs=-1,
-    random_state=42
-)
+params = {
+    'n_estimators': 500,
+    'max_depth': 10,
+    'min_samples_split': 3,
+    'min_samples_leaf': 1,
+    'max_features': 'sqrt',
+    'class_weight': 'balanced',
+    'n_jobs': -1,
+    'random_state': 42
+}
 
 # 모델 학습
 start_time = time.time()
-rf_model.fit(X_train_resampled, y_train_resampled)
+rf_model = RandomForestClassifier(**params)
+rf_model.fit(X_train, y_train)
 train_time = time.time() - start_time
 
 # 예측
@@ -61,12 +57,12 @@ print(f"Macro F1-score: {macro_f1:.4f}")
 print(f"UAR (Unweighted Average Recall): {uar:.4f}")
 print("Classification Report:\n", classification_report(y_test, y_pred))
 
-# ✅ Feature 중요도 분석 및 저장
+# Feature 중요도 분석 및 저장
 feature_importances = rf_model.feature_importances_
 feature_names = X.columns
 
 # 중요도 상위 N개 Feature 선택 (최대 10개)
-num_features = min(10, len(feature_importances))  
+num_features = min(10, len(feature_importances))
 sorted_idx = np.argsort(feature_importances)[::-1][:num_features]
 
 plt.figure(figsize=(10, 6))
