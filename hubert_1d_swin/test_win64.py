@@ -51,7 +51,7 @@ def validate_file_paths(file_names, base_dir):
 if __name__ == "__main__":
     # 환경 설정
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3"
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     # 데이터 및 체크포인트 경로 설정 (train.py와 동일)

@@ -10,7 +10,7 @@ from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_ma
 
 # 환경변수 (필요에 따라 GPU 설정)
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
 # 경로 및 파라미터 설정
 CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"  # CSV 파일 경로

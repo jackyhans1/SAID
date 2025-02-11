@@ -8,6 +8,8 @@ from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_ma
 import seaborn as sns
 from segdataset import SegmentedAudioDataset, collate_fn
 from swin_transformer_1d import Swin1D
+import warnings
+warnings.simplefilter("ignore", FutureWarning)
 
 def test_model(model, dataloader, criterion, device):
     """
