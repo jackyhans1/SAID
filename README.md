@@ -46,4 +46,6 @@ More deatails : https://www.bas.uni-muenchen.de/forschung/Bas/BasALCeng.html
 - Conducting to make improvement
 
 ---
-## 100% my own work!😃
+## 100% my own work!
+- Advised by Prof. EunYi Kim
+- Supported by Konkuk Univ, Voinosis corporation
