@@ -49,7 +49,6 @@ class SegmentedAudioDataset(Dataset):
         return features, mask, label
 
 
-# Collate function for DataLoader
 def collate_fn(batch):
     """
     Custom collate function to handle variable-length sequences in a batch.

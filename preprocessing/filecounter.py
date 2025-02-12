@@ -1,6 +1,5 @@
 import os
 
-# 대상 디렉토리 정의
 destination_dir = "/data/alc_jihan/"
 dirs_to_count = {
     "h_wav": os.path.join(destination_dir, "h_wav"),

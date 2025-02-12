@@ -7,12 +7,11 @@ from transformers import Wav2Vec2FeatureExtractor, HubertForSequenceClassificati
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 
-# 환경 및 경로 설정
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
-CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"  # CSV 파일 경로
-DATA_PATH = "/data/alc_jihan/h_wav_16K_sliced"                      # 오디오 파일 경로
+CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
+DATA_PATH = "/data/alc_jihan/h_wav_16K_sliced"
 SAMPLE_RATE = 16000
 CHECKPOINT_DIR = '/home/ai/said/hubert_finetuning/checkpoint_ll60k'
 CHECKPOINT_PATH = os.path.join(CHECKPOINT_DIR, "best_model_epoch.pth")
@@ -25,7 +24,7 @@ test_df = df[df["Split"] == "test"]
 test_files = test_df["FileName"].tolist()
 test_labels = test_df["Class"].apply(lambda x: 0 if x == "Sober" else 1).tolist()
 
-# 데이터셋 클래스 정의 (학습 시와 동일)
+# 데이터셋 클래스 정의
 class CustomAudioDataset(Dataset):
     def __init__(self, file_paths, labels):
         self.file_paths = file_paths
@@ -60,7 +59,7 @@ def collate_fn(batch):
     labels = torch.tensor(labels)
     return encoded_inputs, labels
 
-# feature_extractor 로드 (HuBERT 모델에 맞게 사용)
+# feature_extractor 로드
 feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/hubert-large-ll60k")
 
 # Test DataLoader 생성
@@ -71,15 +70,14 @@ model = HubertForSequenceClassification.from_pretrained("facebook/hubert-large-l
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model.to(device)
 
-# 저장한 체크포인트 불러오기
 model.load_state_dict(torch.load(CHECKPOINT_PATH, map_location=device))
-model.eval()  # 평가 모드로 전환
+model.eval()
 
 # 평가 함수 (테스트 데이터셋에 대해)
 all_preds = []
 all_labels = []
 total_loss = 0
-criterion = torch.nn.CrossEntropyLoss()  # 평가 시에는 별도의 클래스 가중치가 필요 없다면 기본 CrossEntropyLoss 사용
+criterion = torch.nn.CrossEntropyLoss()
 
 with torch.no_grad():
     for encoded_inputs, labels in test_loader:
@@ -93,7 +91,6 @@ with torch.no_grad():
         all_preds.extend(preds.cpu().numpy())
         all_labels.extend(labels.cpu().numpy())
 
-# 지표 계산
 accuracy = accuracy_score(all_labels, all_preds)
 uar = recall_score(all_labels, all_preds, average="macro")
 macro_f1 = f1_score(all_labels, all_preds, average="macro")
@@ -104,7 +101,6 @@ print("Test Accuracy: {:.4f}".format(accuracy))
 print("Test UAR: {:.4f}".format(uar))
 print("Test Macro F1: {:.4f}".format(macro_f1))
 
-# 결과 저장
 results_text = (
     f"Test Results:\n"
     f"Loss: {test_loss:.4f}\n"
@@ -117,7 +113,6 @@ with open(results_file, "w") as f:
     f.write(results_text)
 print(f"Test results saved to: {results_file}")
 
-# Confusion Matrix 시각화 및 저장
 cm = confusion_matrix(all_labels, all_preds)
 disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["Sober", "Intoxicated"])
 plt.figure(figsize=(8, 6))

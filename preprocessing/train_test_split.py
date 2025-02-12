@@ -2,17 +2,15 @@ import os
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# 데이터 경로 설정
-DATA_PATH = "/data/alc_jihan/h_wav_slided"  # 실제 데이터 경로로 수정하세요
+DATA_PATH = "/data/alc_jihan/h_wav_slided"
 
-# 파일 목록 가져오기
 file_list = [f for f in os.listdir(DATA_PATH) if f.endswith(".wav")]
 
 # 데이터 라벨 및 피실험자 ID 설정 (0: Sober, 1-4: Intoxicated)
 data = []
 for file_name in file_list:
     label = int(file_name.split('_')[0])  # 파일명 첫 번째 숫자로 라벨 결정
-    subject_id = file_name.split('_')[1][:3]  # 피실험자 ID 추출 (예: 596)
+    subject_id = file_name.split('_')[1][:3]  # 피실험자 ID 추출
     if label == 0:
         class_label = "Sober"
     elif label in [1, 2, 3, 4]:
@@ -51,7 +49,7 @@ test_data.loc[:, "Split"] = "test"
 final_df = pd.concat([train_data, val_data, test_data])
 
 # CSV 저장
-output_csv_path = "/data/alc_jihan/split_index/dataset_split_slided.csv"  # 원하는 경로로 수정하세요
+output_csv_path = "/data/alc_jihan/split_index/dataset_split_slided.csv"
 final_df.to_csv(output_csv_path, index=False, header=["FileName", "SubjectID", "Class", "Split"])
 
 print(f"CSV 파일이 저장되었습니다: {output_csv_path}")

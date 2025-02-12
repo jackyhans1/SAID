@@ -5,9 +5,8 @@ import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score
 
-# 데이터 로드
-DATA_PATH = "/data/alc_jihan/extracted_features_whisper_disfluency/all_data_Disfluency_and_metadata.csv"
-OUTPUT_IMAGE_PATH = "/home/ai/said/feature_extraction_disfluency/checkpoint/random_forest_feature_result.png"
+DATA_PATH = "/data/alc_jihan/extracted_features_whisper_disfluency/whisper_meta_emu_final.csv"
+OUTPUT_IMAGE_PATH = "/home/ai/said/feature_extraction_disfluency/checkpoint/random_forest_whisper_emu_feature_result.png"
 
 df = pd.read_csv(DATA_PATH)
 
@@ -30,10 +29,10 @@ print(f"Train Data: {X_train.shape}, Val Data: {X_val.shape}, Test Data: {X_test
 
 # Random Forest 모델 설정
 params = {
-    'n_estimators': 300,
-    'max_depth': 6,
-    'min_samples_split': 10,
-    'min_samples_leaf': 4,
+    'n_estimators': 1000,
+    'max_depth': 10,
+    'min_samples_split': 5,
+    'min_samples_leaf': 2,
     'max_features': 'sqrt',
     'class_weight': 'balanced',
     'n_jobs': -1,
@@ -46,7 +45,7 @@ rf_model = RandomForestClassifier(**params)
 rf_model.fit(X_train, y_train)
 train_time = time.time() - start_time
 
-# 예측 (Train, Validation, Test)
+# 예측
 y_train_pred = rf_model.predict(X_train)
 y_val_pred = rf_model.predict(X_val)
 y_test_pred = rf_model.predict(X_test)
@@ -78,7 +77,7 @@ print("\nTest Classification Report:\n", classification_report(y_test, y_test_pr
 feature_importances = rf_model.feature_importances_
 feature_names = X.columns
 
-# 중요도 상위 7개 Feature 선택
+# 중요도 상위 n개 Feature 선택
 num_features = min(20, len(feature_importances))
 sorted_idx = np.argsort(feature_importances)[::-1][:num_features]
 
@@ -88,6 +87,5 @@ plt.yticks(range(num_features), [feature_names[i] for i in sorted_idx])
 plt.xlabel("Feature Importance")
 plt.title("Top 16 Feature Importance (Random Forest)")
 
-# PNG 파일로 저장
 plt.savefig(OUTPUT_IMAGE_PATH, dpi=300, bbox_inches='tight')
 print(f"\nFeature importance plot saved at: {OUTPUT_IMAGE_PATH}")

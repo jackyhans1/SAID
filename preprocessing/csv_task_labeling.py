@@ -38,13 +38,12 @@ def get_task(file_name, speech_class):
         for task, numbers in task_mapping.get(speech_class, {}).items():
             if last_three_digits in numbers:
                 return task
-        return "unknown"  # 매핑이 없으면 unknown
+        return "unknown"
     except IndexError:
         return "unknown"
 
 df["Task"] = df.apply(lambda row: get_task(row["FileName"], row["Class"]), axis=1)
 
-# 새로운 CSV 파일 저장
 df.to_csv(output_file, index=False)
 
 print(f"새로운 CSV 파일이 생성되었습니다: {output_file}")

@@ -23,7 +23,6 @@ def test_model(model, dataloader, criterion, device):
     
     with torch.no_grad():
         for features, masks, labels in dataloader:
-            # non_blocking 옵션을 사용하여 GPU 전송 (pin_memory=True와 함께 효과적임)
             features = features.to(device, non_blocking=True)
             masks = masks.to(device, non_blocking=True)
             labels = labels.to(device, non_blocking=True)
@@ -56,16 +55,13 @@ def validate_file_paths(file_names, base_dir):
     return valid_paths
 
 if __name__ == "__main__":
-    # 환경 설정
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"  # 만약 GPU 1번을 사용하려는 경우, 단 visible device가 재정의됨에 주의!
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # cuDNN 벤치마크 활성화 (입력 크기가 일정할 때 성능 향상)
     if device != "cpu":
         torch.backends.cudnn.benchmark = True
 
-    # 데이터 및 체크포인트 경로 설정 (train.py와 동일)
     DATA_DIR = "/data/alc_jihan/extracted_features"
     CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
     CHECKPOINT_DIR = "/home/ai/said/hubert_1d_swin/checkpoint_win32"
@@ -74,13 +70,10 @@ if __name__ == "__main__":
     MAX_SEQ_LENGTH = 2048
     BATCH_SIZE = 64
 
-    # CSV 파일 로드 및 test split 데이터 추출 (Split 값이 "test"인 데이터)
     df = pd.read_csv(CSV_PATH)
     test_df = df[df["Split"] == "test"]
 
-    # 파일 존재여부 확인 (파일명 뒤에 .pt가 붙은 상태로 DATA_DIR에 존재해야 함)
     test_files = validate_file_paths(test_df["FileName"].tolist(), DATA_DIR)
-    # test_files에 해당하는 파일명 (확장자 제거)
     valid_file_names = [os.path.basename(f).replace(".pt", "") for f in test_files]
     
     # test_labels: "Class" 값이 "Sober"이면 0, "Intoxicated"이면 1로 변환
@@ -89,7 +82,6 @@ if __name__ == "__main__":
         "Class"
     ].apply(lambda x: 0 if x == "Sober" else 1).tolist()
     
-    # 만약 CSV에 "Task" 컬럼이 존재하면, test_tasks 리스트 생성 (순서는 test_files와 동일하다고 가정)
     if "Task" in test_df.columns:
         test_tasks = test_df.loc[
             test_df["FileName"].isin(valid_file_names),
@@ -98,8 +90,7 @@ if __name__ == "__main__":
     else:
         test_tasks = None
 
-    # SegmentedAudioDataset은 기본적으로 파일 경로와 레이블을 입력받습니다.
-    # (만약 task 정보도 활용하도록 구현되어 있다면, 추가 인자로 넘겨주세요.)
+    # SegmentedAudioDataset은 기본적으로 파일 경로와 레이블을 입력받음
     test_dataset = SegmentedAudioDataset(test_files, test_labels, max_seq_length=MAX_SEQ_LENGTH)
     test_loader = DataLoader(
         test_dataset,
@@ -107,17 +98,15 @@ if __name__ == "__main__":
         shuffle=False,
         collate_fn=collate_fn,
         num_workers=16,
-        pin_memory=True  # pin_memory 추가
+        pin_memory=True
     )
 
-    # 클래스 불균형을 고려한 클래스 가중치 (train 시와 동일하게 적용)
     class_counts = df[df["Split"] == "train"]["Class"].value_counts()
     class_weights = torch.tensor(
         [1.0 / class_counts["Sober"], 1.0 / class_counts["Intoxicated"]],
         dtype=torch.float32
     ).to(device)
 
-    # 모델 생성 (train.py에서 사용한 하이퍼파라미터와 동일)
     model = Swin1D(
         max_length=MAX_SEQ_LENGTH, 
         window_size=32, 
@@ -128,7 +117,6 @@ if __name__ == "__main__":
         swin_num_heads=[4, 16]
     ).to(device)
 
-    # 저장된 모델 파라미터 로드
     if os.path.exists(MODEL_PATH):
         model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
         print("Loaded model from:", MODEL_PATH)
@@ -138,17 +126,14 @@ if __name__ == "__main__":
 
     criterion = nn.CrossEntropyLoss(weight=class_weights)
 
-    # 테스트 진행
     test_loss, test_acc, test_uar, test_f1, all_preds, all_labels = test_model(model, test_loader, criterion, device)
 
-    # 테스트 결과 콘솔 출력
     print("Test Results:")
     print(f"Loss: {test_loss:.4f}")
     print(f"Accuracy: {test_acc:.4f}")
     print(f"UAR (Unweighted Average Recall): {test_uar:.4f}")
     print(f"Macro F1-score: {test_f1:.4f}")
 
-    # 전체 테스트 결과를 test_results.txt에 저장
     results_text = (
         f"Test Results:\n"
         f"Loss: {test_loss:.4f}\n"
@@ -161,7 +146,6 @@ if __name__ == "__main__":
         f.write(results_text)
     print(f"Test results saved to: {results_file}")
 
-    # Confusion Matrix 계산 및 저장 (파일명: test_confusion_matrix.png)
     cm = confusion_matrix(all_labels, all_preds)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",
@@ -177,7 +161,6 @@ if __name__ == "__main__":
 
     # ----- 만약 CSV에 "Task" 컬럼이 존재하면, task별 및 그룹별 성능 평가 후 결과 저장 및 히스토그램 생성 -----
     if test_tasks is not None:
-        # test_tasks 순서가 test_files와 동일하다고 가정
         task_results = {}
         for task in set(test_tasks):
             indices = [i for i, t in enumerate(test_tasks) if t == task]
@@ -189,7 +172,6 @@ if __name__ == "__main__":
                 task_f1 = f1_score(task_true, task_pred, average="macro")
                 task_results[task] = {"accuracy": task_acc, "uar": task_uar, "f1": task_f1}
 
-        # task별 결과를 task_test_result.txt에 저장
         task_results_file = os.path.join(CHECKPOINT_DIR, "task_test_result.txt")
         with open(task_results_file, "w") as f:
             for task, scores in sorted(task_results.items()):

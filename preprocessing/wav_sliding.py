@@ -109,7 +109,7 @@ def slide_or_pad_wav_files(
     import multiprocessing
     from concurrent.futures import ProcessPoolExecutor
 
-    max_workers = 16  # 혹은 원하는 값으로 조정
+    max_workers = 16 
     with ProcessPoolExecutor(max_workers=max_workers) as executor:
         futures = []
         for file_name in files:
@@ -125,7 +125,7 @@ def slide_or_pad_wav_files(
             )
         # 모든 작업 완료 대기
         for f in futures:
-            f.result()  # 예외 처리용. 필요 없다면 생략 가능.
+            f.result()
 
 if __name__ == "__main__":
     slide_or_pad_wav_files()

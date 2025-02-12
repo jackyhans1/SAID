@@ -9,11 +9,9 @@ from transformers import Wav2Vec2Processor, HubertForSequenceClassification
 from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 
-# 환경변수 설정
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-# 경로 및 파라미터 설정
 CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
 DATA_PATH = "/data/alc_jihan/h_wav_16K_sliced"
 SAMPLE_RATE = 16000
@@ -23,7 +21,7 @@ RESULTS_FILE = os.path.join(CHECKPOINT_DIR, "test_results.txt")
 TASK_RESULTS_FILE = os.path.join(CHECKPOINT_DIR, "task_test_result.txt")
 TASK_PLOT_FILE = os.path.join(CHECKPOINT_DIR, "task_performance.png")
 GROUP_PLOT_FILE = os.path.join(CHECKPOINT_DIR, "group_performance.png")
-CONFUSION_MATRIX_FILE = os.path.join(CHECKPOINT_DIR, "test_confusion_matrix.png")  # New: Confusion matrix image path
+CONFUSION_MATRIX_FILE = os.path.join(CHECKPOINT_DIR, "test_confusion_matrix.png")
 
 # ======================
 # Dataset 클래스 정의
@@ -108,7 +106,6 @@ with torch.no_grad():
         all_labels.extend(labels.cpu().numpy())
         all_tasks.extend(tasks)
 
-# 지표 계산
 accuracy = accuracy_score(all_labels, all_preds)
 uar = recall_score(all_labels, all_preds, average="macro")
 macro_f1 = f1_score(all_labels, all_preds, average="macro")
@@ -131,7 +128,7 @@ for task in set(all_tasks):
         task_results[task] = {"accuracy": task_acc, "uar": task_uar, "f1": task_f1}
 
 # ======================
-# test_results.txt 저장 (변경 없음)
+# test_results.txt 저장
 # ======================
 with open(RESULTS_FILE, "w") as f:
     f.write(f"Loss: {test_loss:.4f}\n")
@@ -140,7 +137,7 @@ with open(RESULTS_FILE, "w") as f:
     f.write(f"Macro F1-score: {macro_f1:.4f}\n\n")
 
 # ======================
-# task_test_result.txt 저장 (Task별 성능만 및 그룹별 비교)
+# task_test_result.txt 저장
 # ======================
 with open(TASK_RESULTS_FILE, "w") as f:
     for task, scores in sorted(task_results.items()):
@@ -188,7 +185,7 @@ with open(TASK_RESULTS_FILE, "a") as f:
     f.write(f"  Macro F1: {fixed_text_f1:.4f}\n\n")
 
 # ======================
-# Task별 성능 히스토그램 생성 (with numerical labels on top of bars)
+# Task별 성능 히스토그램 생성
 # ======================
 tasks = sorted(task_results.keys())
 accuracies = [task_results[t]["accuracy"] for t in tasks]
@@ -202,7 +199,6 @@ bar1 = plt.bar(x - 0.2, accuracies, width=0.2, label="Accuracy", alpha=0.7)
 bar2 = plt.bar(x, uars, width=0.2, label="UAR", alpha=0.7)
 bar3 = plt.bar(x + 0.2, f1_scores, width=0.2, label="Macro F1", alpha=0.7)
 
-# Add numerical labels on top of each bar
 for i in range(len(tasks)):
     plt.text(x[i] - 0.2, accuracies[i] + 0.01, f'{accuracies[i]:.2f}', ha='center', va='bottom')
     plt.text(x[i], uars[i] + 0.01, f'{uars[i]:.2f}', ha='center', va='bottom')
@@ -220,7 +216,7 @@ plt.show()
 print(f"Task-based performance histogram saved to: {TASK_PLOT_FILE}")
 
 # ======================
-# Group별 성능 히스토그램 생성 (with numerical labels on top of bars)
+# Group별 성능 히스토그램 생성
 # ======================
 group_names = ["Spontaneous Speech", "Fixed Text Speech"]
 group_accuracies = [spontaneous_acc, fixed_text_acc]
@@ -235,7 +231,6 @@ group_bar1 = plt.bar(x_group - width, group_accuracies, width=width, label="Accu
 group_bar2 = plt.bar(x_group, group_uars, width=width, label="UAR", alpha=0.7)
 group_bar3 = plt.bar(x_group + width, group_f1s, width=width, label="Macro F1", alpha=0.7)
 
-# Add numerical labels on top of each bar
 for i in range(len(group_names)):
     plt.text(x_group[i] - width, group_accuracies[i] + 0.01, f'{group_accuracies[i]:.2f}', ha='center', va='bottom')
     plt.text(x_group[i], group_uars[i] + 0.01, f'{group_uars[i]:.2f}', ha='center', va='bottom')

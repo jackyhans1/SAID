@@ -7,7 +7,7 @@ from sklearn.metrics import accuracy_score, classification_report, f1_score, rec
 
 # 데이터 로드
 DATA_PATH = "/data/alc_jihan/extracted_features_whisper_disfluency/all_data_Disfluency_and_metadata.csv"
-OUTPUT_IMAGE_PATH = "/home/ai/said/feature_extraction_disfluency/checkpoint/rf_7feature_result.png"
+OUTPUT_IMAGE_PATH = "/home/ai/said/feature_extraction_disfluency/checkpoint/random_forest_feature_result.png"
 
 df = pd.read_csv(DATA_PATH)
 
@@ -31,7 +31,7 @@ print(f"Train Data: {X_train.shape}, Val Data: {X_val.shape}, Test Data: {X_test
 # Random Forest 모델 설정
 params = {
     'n_estimators': 1000,
-    'max_depth': 6,
+    'max_depth': 10,
     'min_samples_split': 5,
     'min_samples_leaf': 2,
     'max_features': 'sqrt',
@@ -40,27 +40,7 @@ params = {
     'random_state': 42
 }
 
-# 모델 학습 (전체 Feature를 사용하여 중요도 평가)
-rf_model = RandomForestClassifier(**params)
-rf_model.fit(X_train, y_train)
-
-# Feature 중요도 분석
-feature_importances = rf_model.feature_importances_
-feature_names = X.columns
-
-# 중요도 상위 7개 Feature 선택
-num_features = 7
-sorted_idx = np.argsort(feature_importances)[::-1][:num_features]
-selected_features = [feature_names[i] for i in sorted_idx]
-
-print(f"Selected Features: {selected_features}")
-
-# 상위 7개 Feature만 사용
-X_train = X_train[selected_features]
-X_val = X_val[selected_features]
-X_test = X_test[selected_features]
-
-# 상위 7개 Feature로 다시 학습
+# 모델 학습
 start_time = time.time()
 rf_model = RandomForestClassifier(**params)
 rf_model.fit(X_train, y_train)
@@ -81,21 +61,32 @@ test_macro_f1 = f1_score(y_test, y_test_pred, average='macro')
 test_uar = recall_score(y_test, y_test_pred, average='macro')
 
 print(f"\nTraining Time: {train_time:.2f} sec\n")
+
 print(f"Train Accuracy: {train_accuracy:.4f}")
 print(f"Train UAR: {train_uar:.4f}")
+
 print(f"\nValidation Accuracy: {val_accuracy:.4f}")
 print(f"Validation UAR: {val_uar:.4f}")
+
 print(f"\nTest Accuracy: {test_accuracy:.4f}")
 print(f"Test Macro F1-score: {test_macro_f1:.4f}")
 print(f"Test UAR (Unweighted Average Recall): {test_uar:.4f}")
+
 print("\nTest Classification Report:\n", classification_report(y_test, y_test_pred))
 
-# 중요도 상위 7개 Feature 시각화
+# Feature 중요도 분석 및 저장
+feature_importances = rf_model.feature_importances_
+feature_names = X.columns
+
+# 중요도 상위 n개 Feature 선택
+num_features = min(20, len(feature_importances))
+sorted_idx = np.argsort(feature_importances)[::-1][:num_features]
+
 plt.figure(figsize=(10, 6))
 plt.barh(range(num_features), feature_importances[sorted_idx], align="center")
-plt.yticks(range(num_features), selected_features)
+plt.yticks(range(num_features), [feature_names[i] for i in sorted_idx])
 plt.xlabel("Feature Importance")
-plt.title("Top 7 Feature Importance (Random Forest)")
+plt.title("Top 16 Feature Importance (Random Forest)")
 
 # PNG 파일로 저장
 plt.savefig(OUTPUT_IMAGE_PATH, dpi=300, bbox_inches='tight')

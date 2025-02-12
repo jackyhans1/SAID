@@ -17,13 +17,15 @@ More deatails : https://www.bas.uni-muenchen.de/forschung/Bas/BasALCeng.html
 
 ## 🛠️ Features
 - **Speech Data Preprocessing**:
-  - Audio slicing, labeling, and dataset splitting
-  - Speaker diarization to handle multi-speaker recordings
+  - Audio slicing, labeling, and dataset splitting (train : val : test = 70 :15:15)
+  - Speaker diarization to handle multi-speaker recordings (by using Pyannote)
 - **Feature Extraction**:
   - HuBERT-based feature extraction for speech representation
+  - Disfluency Feature using Whisper(large)
 - **Modeling and Training**:
   - Fine-tuning HuBERT for classification
   - Training Swin Transformer 1D and Vision Transformer (ViT) for speech modeling
+  - Random Forest using meta data & Disflency feature
 - **Evaluation and Analysis**:
   - Visualization of key performance metrics, including:
     - **Accuracy**
@@ -36,6 +38,7 @@ More deatails : https://www.bas.uni-muenchen.de/forschung/Bas/BasALCeng.html
 - Enhancing feature extraction methods for improved classification.
 - Ensemble with a random forest model (feature : disfluency , slurred speech).
 - Comparing performance across additional machine learning models.
+- working on specifying task wise result -> to make improvement
 - Still working on it!!!
 
 ---

@@ -15,7 +15,7 @@ hlb_files_h = set()
 hlb_files_m = set()
 for file in os.listdir(hlb_dir):
     if file.endswith(".hlb"):
-        # 기본 이름 추출 (예: 0061006001_h_00)
+        # 기본 이름 추출
         base_name_h = file.replace(".hlb", "")
         base_name_m = base_name_h.replace("_h_", "_m_")  # _h_를 _m_로 변환
         hlb_files_h.add(base_name_h)

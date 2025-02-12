@@ -5,7 +5,6 @@ from sklearn.metrics import accuracy_score, classification_report, f1_score, rec
 import time
 import matplotlib.pyplot as plt
 
-# 데이터 로드
 DATA_PATH = "/data/alc_jihan/extracted_features_whisper_disfluency/all_data_Disfluency_features_more_added.csv"
 OUTPUT_IMAGE_PATH = "/home/ai/said/feature_extraction_disfluency/checkpoint/xgBoost_feature_result.png"
 
@@ -63,6 +62,5 @@ plt.figure(figsize=(10, 6))
 xgb.plot_importance(xgb_model, max_num_features=10)
 plt.title("Top 10 Feature Importance (XGBoost)")
 
-# PNG 파일로 저장
 plt.savefig(OUTPUT_IMAGE_PATH, dpi=300, bbox_inches='tight')
 print(f"Feature importance plot saved at: {OUTPUT_IMAGE_PATH}")

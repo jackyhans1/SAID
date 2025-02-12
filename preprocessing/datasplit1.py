@@ -11,7 +11,6 @@ dest_m_wav_dir = os.path.join(destination_dir, "m_wav")
 dest_par_dir = os.path.join(destination_dir, "par")
 dest_textgrid_dir = os.path.join(destination_dir, "textgrid")
 
-# 복사 대상 폴더가 없으면 생성
 os.makedirs(dest_h_wav_dir, exist_ok=True)
 os.makedirs(dest_m_wav_dir, exist_ok=True)
 os.makedirs(dest_par_dir, exist_ok=True)
@@ -26,7 +25,7 @@ for block_name in block_list:
     
     # BLOCK 폴더가 존재하는지 확인
     if os.path.exists(block_dir):
-        # 세션 폴더(SES1006, SES1007 등)를 순회
+        # 세션 폴더 순회
         for ses_dir in os.listdir(block_dir):
             ses_path = os.path.join(block_dir, ses_dir)
             

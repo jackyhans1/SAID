@@ -13,20 +13,16 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import accuracy_score, recall_score, f1_score
 import pandas as pd
 
-# CSV 경로 및 데이터 경로 설정
-CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"  # 수정된 CSV 경로
-DATA_PATH = "/data/alc_jihan/h_wav_16K_sliced"  # 오디오 파일 경로
+CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
+DATA_PATH = "/data/alc_jihan/h_wav_16K_sliced"
 SAMPLE_RATE = 16000
 
-# 모델 저장 디렉토리 설정
 CHECKPOINT_DIR = '/home/ai/said/hubert_finetuning/checkpoint_ll60k'
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-# CSV 데이터 로드
 df = pd.read_csv(CSV_PATH)
-df["FileName"] = df["FileName"].apply(lambda x: os.path.join(DATA_PATH, x + ".wav"))  # 파일 경로 생성
+df["FileName"] = df["FileName"].apply(lambda x: os.path.join(DATA_PATH, x + ".wav")) 
 
-# 데이터셋 클래스 정의 (이제 fixed length로 자르지 않음)
 class CustomAudioDataset(Dataset):
     def __init__(self, file_paths, labels):
         self.file_paths = file_paths
@@ -38,17 +34,15 @@ class CustomAudioDataset(Dataset):
     def __getitem__(self, idx):
         audio_path = self.file_paths[idx]
         label = self.labels[idx]
-
-        # 오디오 로드 및 리샘플링 (필요한 경우)
+        
         waveform, sample_rate = torchaudio.load(audio_path)
         if sample_rate != SAMPLE_RATE:
             waveform = torchaudio.transforms.Resample(orig_freq=sample_rate, new_freq=SAMPLE_RATE)(waveform)
         # 채널 차원 제거 (1차원 배열로)
         waveform = waveform.squeeze(0)
-        # 여기서는 자르거나 패딩하지 않고 원본 길이 그대로 반환
+        
         return waveform.numpy(), label
 
-# 데이터 로드 및 분리
 train_df = df[df["Split"] == "train"]
 val_df = df[df["Split"] == "val"]
 test_df = df[df["Split"] == "test"]
@@ -60,17 +54,16 @@ val_labels = val_df["Class"].apply(lambda x: 0 if x == "Sober" else 1).tolist()
 test_files = test_df["FileName"].tolist()
 test_labels = test_df["Class"].apply(lambda x: 0 if x == "Sober" else 1).tolist()
 
-# HuBERT (large-ll60k) 기반 feature extractor 및 Dataset 준비
+# HuBERT (large-ll60k) 기반 feature extractor 및 Dataset
 feature_extractor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/hubert-large-ll60k")
 train_dataset = CustomAudioDataset(train_files, train_labels)
 val_dataset = CustomAudioDataset(val_files, val_labels)
-# test_dataset = CustomAudioDataset(test_files, test_labels)
 
 # 배치 내 음성의 길이가 다르므로 feature_extractor를 이용해 dynamic padding 및 attention mask 생성
 def collate_fn(batch):
     # batch: list of (waveform, label)
     waveforms, labels = zip(*batch)
-    # feature_extractor가 리스트 형태의 raw audio (numpy array)를 받으면 내부적으로 가장 긴 길이에 맞춰 padding합니다.
+    # feature_extractor가 리스트 형태의 raw audio (numpy array)를 받으면 내부적으로 가장 긴 길이에 맞춰 padding
     encoded_inputs = feature_extractor(
         list(waveforms),
         sampling_rate=SAMPLE_RATE,
@@ -83,9 +76,8 @@ def collate_fn(batch):
 
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, collate_fn=collate_fn, num_workers=8)
 val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn, num_workers=8)
-# test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False, collate_fn=collate_fn, num_workers=8)
 
-# HuBERT 모델 로드 및 수정 (HuBERT (large-ll60k) 사용)
+# HuBERT 모델 로드 및 수정
 model = HubertForSequenceClassification.from_pretrained(
     "facebook/hubert-large-ll60k",
     num_labels=2  # 이진 분류
@@ -98,14 +90,12 @@ label_counts = train_df["Class"].value_counts()
 class_weights = torch.tensor([1.0 / label_counts["Sober"], 1.0 / label_counts["Intoxicated"]], dtype=torch.float32).to(device)
 criterion = torch.nn.CrossEntropyLoss(weight=class_weights)
 
-# 학습 설정
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
 patience = 5
 best_val_uar = 0.0  # Early stopping 기준: best UAR (macro Recall)
 early_stop_counter = 0
 
-# Confusion Matrix 시각화 함수
 def plot_confusion_matrix(true_labels, preds, class_names, save_path):
     cm = confusion_matrix(true_labels, preds)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
@@ -217,10 +207,8 @@ for epoch in range(epochs):
 
     scheduler.step()
 
-# Confusion Matrix 저장 (Validation set 기준)
 plot_confusion_matrix(val_true, val_preds, class_names=["Sober", "Intoxicated"], save_path=os.path.join(CHECKPOINT_DIR, "val_confusion_matrix.png"))
 
-# 시각화 저장
 plot_combined_metrics(train_losses, val_losses, "Loss", "Train and Validation Loss", os.path.join(CHECKPOINT_DIR, "loss_plot.png"))
 plot_combined_metrics(train_accuracies, val_accuracies, "Accuracy", "Train and Validation Accuracy", os.path.join(CHECKPOINT_DIR, "accuracy_plot.png"))
 plot_combined_metrics(train_uars, val_uars, "UAR", "Train and Validation UAR", os.path.join(CHECKPOINT_DIR, "uar_plot.png"))

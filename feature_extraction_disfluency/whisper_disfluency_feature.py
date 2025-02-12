@@ -5,7 +5,6 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-# GPU 설정
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 
@@ -13,7 +12,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 AUDIO_DIR = "/data/alc_jihan/h_wav_16K_sliced"
 TASK_CSV = "/data/alc_jihan/split_index/dataset_split_sliced.csv"  # Task 정보가 있는 CSV 파일
-OUTPUT_CSV = "/data/alc_jihan/extracted_features_whisper_disfluency/all_data_Disfluency_features_more_added.csv"  # 출력 CSV 파일
+OUTPUT_CSV = "/data/alc_jihan/extracted_features_whisper_disfluency/all_data_Disfluency_features_more_added.csv"
 
 # Whisper 모델 로드
 model = whisper.load_model("large").to(device)
@@ -27,7 +26,7 @@ task_mapping = {row["FileName"]: (row["SubjectID"], row["Class"], row["Split"], 
 def extract_silence_features(audio_path):
     """Whisper 기반으로 음성과 침묵 구간을 분석 (맨 앞, 맨 뒤 묵음 제외)"""
     
-    # Whisper 음성 인식 수행 (독일어 설정, GPU에서 실행)
+    # Whisper 음성 인식 수행 (독일어 설정)
     result = model.transcribe(audio_path, language="de", word_timestamps=True)
 
     # 음성(발화) 구간 추출
@@ -52,7 +51,6 @@ def extract_silence_features(audio_path):
     # 마지막 침묵(맨 뒤 묵음) 제거
     silence_segments = [seg for seg in silence_segments if seg[1] <= audio_end]
 
-    # Feature 계산
     if not silence_segments:
         return [0] * 9  # 중간 침묵이 없는 경우 기본값 반환
     

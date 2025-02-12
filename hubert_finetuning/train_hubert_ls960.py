@@ -13,18 +13,15 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import accuracy_score, recall_score, f1_score
 import pandas as pd
 
-# CSV 경로 및 데이터 경로 설정
-CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"  # 수정된 CSV 경로
-DATA_PATH = "/data/alc_jihan/h_wav_16K_sliced"  # 오디오 파일 경로
+CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv" 
+DATA_PATH = "/data/alc_jihan/h_wav_16K_sliced"
 SAMPLE_RATE = 16000
 
-# 모델 저장 디렉토리 설정
 CHECKPOINT_DIR = '/home/ai/said/hubert_finetuning/checkpoint_ls960'
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-# CSV 데이터 로드
 df = pd.read_csv(CSV_PATH)
-df["FileName"] = df["FileName"].apply(lambda x: os.path.join(DATA_PATH, x + ".wav"))  # 파일 경로 생성
+df["FileName"] = df["FileName"].apply(lambda x: os.path.join(DATA_PATH, x + ".wav"))
 
 # ======================
 # Dataset 클래스 수정
@@ -49,17 +46,13 @@ class CustomAudioDataset(Dataset):
         waveform = waveform.squeeze(0)
         return waveform, label
 
-# 데이터 분할
 train_df = df[df["Split"] == "train"]
 val_df = df[df["Split"] == "val"]
-# test_df = df[df["Split"] == "test"]
 
 train_files = train_df["FileName"].tolist()
 train_labels = train_df["Class"].apply(lambda x: 0 if x == "Sober" else 1).tolist()
 val_files = val_df["FileName"].tolist()
 val_labels = val_df["Class"].apply(lambda x: 0 if x == "Sober" else 1).tolist()
-# test_files = test_df["FileName"].tolist()
-# test_labels = test_df["Class"].apply(lambda x: 0 if x == "Sober" else 1).tolist()
 
 # ======================
 # Processor 및 Dataset 준비
@@ -67,7 +60,6 @@ val_labels = val_df["Class"].apply(lambda x: 0 if x == "Sober" else 1).tolist()
 processor = Wav2Vec2Processor.from_pretrained("facebook/hubert-large-ls960-ft")
 train_dataset = CustomAudioDataset(train_files, train_labels)
 val_dataset = CustomAudioDataset(val_files, val_labels)
-# test_dataset = CustomAudioDataset(test_files, test_labels)
 
 # ======================
 # DataLoader 정의 (동적 패딩 사용)
@@ -77,13 +69,12 @@ def collate_fn(batch):
     waveforms, labels = zip(*batch)
     # processor는 numpy array를 입력으로 받으므로, 각 waveform을 numpy로 변환
     waveforms = [w.numpy() for w in waveforms]
-    # padding=True 옵션을 사용하면 배치 내에서 가장 긴 음성 길이에 맞춰 padding하고, attention_mask도 생성함
+    # padding=True 옵션을 사용하면 배치 내에서 가장 긴 음성 길이에 맞춰 padding하고, attention_mask도 생성
     batch_inputs = processor(waveforms, sampling_rate=SAMPLE_RATE, padding=True, return_tensors="pt")
     return batch_inputs.input_values, batch_inputs.attention_mask, torch.tensor(labels)
 
 train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, collate_fn=collate_fn, num_workers=8)
 val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn, num_workers=8)
-# test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False, collate_fn=collate_fn, num_workers=8)
 
 # ======================
 # 모델 및 손실/옵티마이저 설정
@@ -134,7 +125,7 @@ def plot_combined_metrics(train_values, val_values, metric_name, title, save_pat
     plt.close()
 
 # ======================
-# 학습 및 평가 함수 (attention_mask 추가)
+# 학습 및 평가 함수 (attention_mask)
 # ======================
 def train_epoch(model, dataloader, optimizer, criterion, device):
     model.train()

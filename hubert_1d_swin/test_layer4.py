@@ -49,12 +49,10 @@ def validate_file_paths(file_names, base_dir):
     return valid_paths
 
 if __name__ == "__main__":
-    # 환경 설정
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
-    # 데이터 및 체크포인트 경로 설정 (train.py와 동일)
     DATA_DIR = "/data/alc_jihan/extracted_features"
     CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
     CHECKPOINT_DIR = "/home/ai/said/hubert_1d_swin/checkpoint_layer4"
@@ -63,7 +61,6 @@ if __name__ == "__main__":
     MAX_SEQ_LENGTH = 2048
     BATCH_SIZE = 64
 
-    # CSV 파일 로드 및 test split 데이터 추출 (Split 값이 "test"인 데이터)
     df = pd.read_csv(CSV_PATH)
     test_df = df[df["Split"] == "test"]
 
@@ -76,14 +73,12 @@ if __name__ == "__main__":
     test_dataset = SegmentedAudioDataset(test_files, test_labels, max_seq_length=MAX_SEQ_LENGTH)
     test_loader = DataLoader(test_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn, num_workers=16)
 
-    # 클래스 불균형을 고려한 클래스 가중치 (train 시와 동일하게 적용)
     class_counts = df[df["Split"] == "train"]["Class"].value_counts()
     class_weights = torch.tensor(
         [1.0 / class_counts["Sober"], 1.0 / class_counts["Intoxicated"]],
         dtype=torch.float32
     ).to(device)
 
-    # 모델 생성 (train.py에서 사용한 하이퍼파라미터와 동일)
     model = Swin1D(
         max_length=MAX_SEQ_LENGTH, 
         window_size=8, 
@@ -94,7 +89,6 @@ if __name__ == "__main__":
         swin_num_heads=[4, 8, 16, 32]
     ).to(device)
 
-    # 저장된 모델 파라미터 로드
     if os.path.exists(MODEL_PATH):
         model.load_state_dict(torch.load(MODEL_PATH, map_location=device))
         print("Loaded model from:", MODEL_PATH)
@@ -104,17 +98,14 @@ if __name__ == "__main__":
 
     criterion = nn.CrossEntropyLoss(weight=class_weights)
 
-    # 테스트 진행
     test_loss, test_acc, test_uar, test_f1, all_preds, all_labels = test_model(model, test_loader, criterion, device)
 
-    # 테스트 결과를 콘솔에 출력
     print("Test Results:")
     print(f"Loss: {test_loss:.4f}")
     print(f"Accuracy: {test_acc:.4f}")
     print(f"UAR (Unweighted Average Recall): {test_uar:.4f}")
     print(f"Macro F1-score: {test_f1:.4f}")
 
-    # 테스트 결과를 텍스트 파일로 저장
     results_text = (
         f"Test Results:\n"
         f"Loss: {test_loss:.4f}\n"
@@ -127,7 +118,6 @@ if __name__ == "__main__":
         f.write(results_text)
     print(f"Test results saved to: {results_file}")
 
-    # Confusion Matrix 계산 및 이미지 저장
     cm = confusion_matrix(all_labels, all_preds)
     plt.figure(figsize=(8, 6))
     sns.heatmap(cm, annot=True, fmt="d", cmap="Blues",

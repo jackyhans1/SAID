@@ -1,10 +1,9 @@
 import pandas as pd
 
-# 파일 경로 설정
 input_file = "/data/ALC/TABLE/SESSEXT.TBL"
 output_file = "/data/ALC/TABLE/SESSEXT.csv"
 
-# .TBL 파일을 읽어서 CSV로 저장하는 코드
+# .TBL 파일을 읽어서 CSV로 저장
 def convert_tbl_to_csv(input_path, output_path):
     try:
         # 첫 줄이 헤더로 사용되므로 delim_whitespace로 공백 기준 분리
@@ -16,5 +15,4 @@ def convert_tbl_to_csv(input_path, output_path):
     except Exception as e:
         print(f"오류 발생: {e}")
 
-# 변환 함수 실행
 convert_tbl_to_csv(input_file, output_file)

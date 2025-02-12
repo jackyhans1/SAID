@@ -22,11 +22,11 @@ for block_ses_dir in os.listdir(source_dir):  # e.g., BLOCK10_SES1006_ses
     if any(block_ses_dir.startswith(block) for block in valid_blocks):
         block_ses_path = os.path.join(source_dir, block_ses_dir)
         
-        if os.path.isdir(block_ses_path):  # 디렉토리가 맞는지 확인
+        if os.path.isdir(block_ses_path):  # 디렉토리 확인
             for bundle_dir in os.listdir(block_ses_path):  # 번들 디렉토리 탐색
                 bundle_path = os.path.join(block_ses_path, bundle_dir)
                 if os.path.isdir(bundle_path):  # 번들 디렉토리가 맞는지 확인
-                    for file_name in os.listdir(bundle_path):  # 파일을 탐색
+                    for file_name in os.listdir(bundle_path):  # 파일 탐색
                         file_path = os.path.join(bundle_path, file_name)
                         # 파일 이름에 따라 복사
                         if file_name.endswith("_h_00_annot.json") or \

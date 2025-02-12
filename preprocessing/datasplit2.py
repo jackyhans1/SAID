@@ -9,7 +9,6 @@ destination_dir = "/data/alc_jihan/"
 dest_hlb_dir = os.path.join(destination_dir, "hlb")
 dest_phonetic_dir = os.path.join(destination_dir, "phonetic")
 
-# 복사 대상 폴더가 없으면 생성
 os.makedirs(dest_hlb_dir, exist_ok=True)
 os.makedirs(dest_phonetic_dir, exist_ok=True)
 
@@ -22,7 +21,7 @@ for block_name in block_list:
     
     # BLOCK 폴더가 존재하는지 확인
     if os.path.exists(block_dir):
-        # 세션 폴더(SES1006, SES1007 등)를 순회
+        # 세션 폴더 순회
         for ses_dir in os.listdir(block_dir):
             ses_path = os.path.join(block_dir, ses_dir)
             

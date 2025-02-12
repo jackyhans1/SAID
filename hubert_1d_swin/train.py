@@ -19,7 +19,7 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
         features, masks, labels = features.to(device), masks.to(device), labels.to(device)
 
         optimizer.zero_grad()
-        # 모델의 forward에 features와 attention mask(masks)를 함께 전달합니다.
+        # 모델의 forward에 features와 attention mask(masks)를 함께 전달
         outputs = model(features, masks)
         loss = criterion(outputs, labels)
         loss.backward()
@@ -186,11 +186,9 @@ if __name__ == "__main__":
             if early_stop_counter >= patience:
                 print("Early stopping triggered!")
                 break
-
-    # Loss, Accuracy는 기존처럼 하나의 이미지로 저장
+            
     plot_metrics(train_losses, val_losses, "Loss", os.path.join(CHECKPOINT_DIR, "loss_plot.png"))
     plot_metrics(train_accuracies, val_accuracies, "Accuracy", os.path.join(CHECKPOINT_DIR, "accuracy_plot.png"))
     
-    # UAR와 Macro F1을 각각 별도의 이미지로 저장
     plot_metrics(train_uars, val_uars, "UAR", os.path.join(CHECKPOINT_DIR, "uar_plot.png"))
     plot_metrics(train_f1s, val_f1s, "Macro F1", os.path.join(CHECKPOINT_DIR, "macro_f1_plot.png"))

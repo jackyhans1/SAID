@@ -19,7 +19,7 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
         features, masks, labels = features.to(device), masks.to(device), labels.to(device)
 
         optimizer.zero_grad()
-        # 모델의 forward에 features와 attention mask(masks)를 함께 전달합니다.
+        # 모델의 forward에 features와 attention mask를 함께 전달
         outputs = model(features, masks)
         loss = criterion(outputs, labels)
         loss.backward()
@@ -96,7 +96,6 @@ if __name__ == "__main__":
     train_df = df[df["Split"] == "train"]
     val_df = df[df["Split"] == "val"]
 
-    # 파일 경로 확인 및 유효한 파일만 사용
     def validate_file_paths(file_names, base_dir):
         valid_paths = []
         for file_name in file_names:
@@ -125,14 +124,13 @@ if __name__ == "__main__":
     train_loader = DataLoader(train_dataset, batch_size=BATCH_SIZE, shuffle=True, collate_fn=collate_fn, num_workers=16)
     val_loader = DataLoader(val_dataset, batch_size=BATCH_SIZE, shuffle=False, collate_fn=collate_fn, num_workers=16)
 
-    # 클래스 불균형을 고려한 클래스 가중치 계산 (예: Sober : Intoxicated = 2 : 1)
+    # 클래스 가중치 계산 
     class_counts = train_df["Class"].value_counts()
     class_weights = torch.tensor(
         [1.0 / class_counts["Sober"], 1.0 / class_counts["Intoxicated"]],
         dtype=torch.float32
     ).to(device)
 
-    # num_swin_layers를 4로 설정하고, 각 스테이지에 맞게 swin_depth와 swin_num_heads를 수정합니다.
     model = Swin1D(
         max_length=MAX_SEQ_LENGTH, 
         window_size=32, 
@@ -146,13 +144,11 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss(weight=class_weights)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR)
 
-    # 각 지표별로 training과 validation 값을 저장할 리스트 초기화
     train_losses, val_losses = [], []
     train_accuracies, val_accuracies = [], []
     train_uars, val_uars = [], []
     train_f1s, val_f1s = [], []
 
-    # Early stopping 기준을 validation의 UAR 값으로 설정
     best_val_uar = 0.0
     patience = 10
     early_stop_counter = 0
@@ -174,7 +170,6 @@ if __name__ == "__main__":
         print(f"Train Loss: {train_loss:.4f}, Acc: {train_acc:.4f}, UAR: {train_uar:.4f}, F1: {train_f1:.4f}")
         print(f"Val Loss: {val_loss:.4f}, Acc: {val_acc:.4f}, UAR: {val_uar:.4f}, F1: {val_f1:.4f}")
 
-        # Early stopping: validation Macro F1-score 기준으로 개선되지 않으면 카운터 증가
         if val_uar > best_val_uar:
             best_val_uar = val_uar
             early_stop_counter = 0
@@ -187,10 +182,8 @@ if __name__ == "__main__":
                 print("Early stopping triggered!")
                 break
 
-    # Loss, Accuracy는 기존처럼 하나의 이미지로 저장
     plot_metrics(train_losses, val_losses, "Loss", os.path.join(CHECKPOINT_DIR, "loss_plot.png"))
     plot_metrics(train_accuracies, val_accuracies, "Accuracy", os.path.join(CHECKPOINT_DIR, "accuracy_plot.png"))
-    
-    # UAR와 Macro F1을 각각 별도의 이미지로 저장
+
     plot_metrics(train_uars, val_uars, "UAR", os.path.join(CHECKPOINT_DIR, "uar_plot.png"))
     plot_metrics(train_f1s, val_f1s, "Macro F1", os.path.join(CHECKPOINT_DIR, "macro_f1_plot.png"))

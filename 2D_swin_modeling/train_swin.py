@@ -12,13 +12,11 @@ from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_ma
 import matplotlib.pyplot as plt
 import pandas as pd
 
-# 경로 설정
 CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
 DATA_PATH = "/data/alc_jihan/melspectrograms_for_swin"
 CHECKPOINT_DIR = '/home/ai/said/2D_swin_modeling/checkpoint'
 os.makedirs(CHECKPOINT_DIR, exist_ok=True)
 
-# CSV 데이터 로드
 df = pd.read_csv(CSV_PATH)
 df["FileName"] = df["FileName"].apply(lambda x: os.path.join(DATA_PATH, x + ".png"))
 
@@ -100,7 +98,7 @@ val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, collate_fn=col
 test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn)
 
 # 클래스 비율 기반 가중치 계산
-class_counts = train_df["Class"].value_counts()  # e.g., {"Sober": n_sober, "Intoxicated": n_intox}
+class_counts = train_df["Class"].value_counts()
 class_weights = torch.tensor([1.0 / class_counts["Sober"], 1.0 / class_counts["Intoxicated"]], dtype=torch.float32)
 
 # Swin-Large 모델 초기화
@@ -117,11 +115,9 @@ model.to(device)
 # Weighted CrossEntropyLoss
 criterion = torch.nn.CrossEntropyLoss(weight=class_weights.to(device))
 
-# 옵티마이저 및 스케줄러
 optimizer = torch.optim.AdamW(model.parameters(), lr=1e-5)
 scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
 
-# Confusion Matrix 및 결과 시각화 함수
 def plot_confusion_matrix(true_labels, preds, class_names, save_path):
     cm = confusion_matrix(true_labels, preds)
     disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
@@ -131,7 +127,6 @@ def plot_confusion_matrix(true_labels, preds, class_names, save_path):
     plt.savefig(save_path)
     plt.close()
 
-# 시각화 함수: Loss, Accuracy, UAR, F1
 def plot_combined_metrics(train_values, val_values, metric_name, title, save_path):
     plt.figure(figsize=(10, 5))
     plt.plot(train_values, label=f'Train {metric_name}')
@@ -143,7 +138,6 @@ def plot_combined_metrics(train_values, val_values, metric_name, title, save_pat
     plt.savefig(save_path)
     plt.close()
 
-# 학습 함수
 def train(model, dataloader, optimizer, criterion, device):
     model.train()
     total_loss = 0
@@ -167,7 +161,6 @@ def train(model, dataloader, optimizer, criterion, device):
     macro_f1 = f1_score(true_labels, preds, average="macro")  # F1 Score
     return total_loss / len(dataloader), accuracy, uar, macro_f1, preds, true_labels
 
-# 평가 함수
 def evaluate(model, dataloader, criterion, device):
     model.eval()
     total_loss = 0
@@ -188,7 +181,6 @@ def evaluate(model, dataloader, criterion, device):
     macro_f1 = f1_score(true_labels, preds, average="macro")
     return total_loss / len(dataloader), accuracy, uar, macro_f1, preds, true_labels
 
-# Early Stopping 설정
 patience = 5
 early_stop_counter = 0
 best_val_loss = float('inf')
@@ -216,7 +208,6 @@ for epoch in range(epochs):
     print(f"Train Loss: {train_loss:.4f}, Train Acc: {train_acc:.4f}, Train UAR: {train_uar:.4f}, Train F1: {train_f1:.4f}")
     print(f"Val Loss: {val_loss:.4f}, Val Acc: {val_acc:.4f}, Val UAR: {val_uar:.4f}, Val F1: {val_f1:.4f}")
 
-    # Early Stopping
     if val_loss < best_val_loss:
         best_val_loss = val_loss
         early_stop_counter = 0

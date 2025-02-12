@@ -19,7 +19,7 @@ def train_epoch(model, dataloader, optimizer, criterion, device):
         features, masks, labels = features.to(device), masks.to(device), labels.to(device)
 
         optimizer.zero_grad()
-        # 모델의 forward에 features와 attention mask(masks)를 함께 전달합니다.
+        # 모델의 forward에 features와 attention mask를 함께 전달
         outputs = model(features, masks)
         loss = criterion(outputs, labels)
         loss.backward()
@@ -146,7 +146,6 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss(weight=class_weights)
     optimizer = torch.optim.AdamW(model.parameters(), lr=LR)
 
-    # 각 지표별로 training과 validation 값을 저장할 리스트 초기화
     train_losses, val_losses = [], []
     train_accuracies, val_accuracies = [], []
     train_uars, val_uars = [], []
@@ -174,7 +173,6 @@ if __name__ == "__main__":
         print(f"Train Loss: {train_loss:.4f}, Acc: {train_acc:.4f}, UAR: {train_uar:.4f}, F1: {train_f1:.4f}")
         print(f"Val Loss: {val_loss:.4f}, Acc: {val_acc:.4f}, UAR: {val_uar:.4f}, F1: {val_f1:.4f}")
 
-        # Early stopping: validation Macro F1-score 기준으로 개선되지 않으면 카운터 증가
         if val_uar > best_val_uar:
             best_val_uar = val_uar
             early_stop_counter = 0
@@ -187,10 +185,8 @@ if __name__ == "__main__":
                 print("Early stopping triggered!")
                 break
 
-    # Loss, Accuracy는 기존처럼 하나의 이미지로 저장
     plot_metrics(train_losses, val_losses, "Loss", os.path.join(CHECKPOINT_DIR, "loss_plot.png"))
     plot_metrics(train_accuracies, val_accuracies, "Accuracy", os.path.join(CHECKPOINT_DIR, "accuracy_plot.png"))
-    
-    # UAR와 Macro F1을 각각 별도의 이미지로 저장
+
     plot_metrics(train_uars, val_uars, "UAR", os.path.join(CHECKPOINT_DIR, "uar_plot.png"))
     plot_metrics(train_f1s, val_f1s, "Macro F1", os.path.join(CHECKPOINT_DIR, "macro_f1_plot.png"))
