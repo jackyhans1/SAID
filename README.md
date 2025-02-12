@@ -48,4 +48,5 @@ More deatails : https://www.bas.uni-muenchen.de/forschung/Bas/BasALCeng.html
 ---
 ## 100% my own work!
 - Advised by Prof. EunYi Kim
-- Supported by Konkuk Univ, Voinosis corporation
+- Supported by Voinosis corporation
+- Supported by Konkuk University
