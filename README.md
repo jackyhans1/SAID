@@ -44,3 +44,6 @@ More deatails : https://www.bas.uni-muenchen.de/forschung/Bas/BasALCeng.html
 ---
 ## This was a topic of Interspeech challenge (2009~2011)
 - Conducting to make improvement
+
+---
+## 100% my own work!😃
