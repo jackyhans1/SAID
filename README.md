@@ -25,7 +25,7 @@ More deatails : https://www.bas.uni-muenchen.de/forschung/Bas/BasALCeng.html
 - **Modeling and Training**:
   - Fine-tuning HuBERT for classification
   - Training Swin Transformer 1D and Vision Transformer (ViT) for speech modeling
-  - Random Forest using meta data & Disflency feature
+  - Random Forest using meta data & Disfluency feature
 - **Evaluation and Analysis**:
   - Visualization of key performance metrics, including:
     - **Accuracy**
