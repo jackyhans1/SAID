@@ -3,12 +3,14 @@ import shutil
 from pydub import AudioSegment
 from pyannote.audio import Pipeline
 import torch
+torch.backends.cuda.matmul.allow_tf32 = True
+torch.backends.cudnn.allow_tf32 = True
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 import csv
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def copy_file(src, dst):
@@ -22,11 +24,13 @@ def copy_file(src, dst):
     shutil.copy(src, dst)
     print(f"Copied original audio: {dst}")
 
-def process_and_slice_audio(input_folder, output_folder, merge_threshold=3.0, min_duration=2.0, csv_path=None):
+def process_and_slice_audio(input_folder, output_folder, merge_threshold=3.0, min_duration=1.0, csv_path=None):
     """
     디렉터리 내의 .wav 파일을 처리하여 조건에 따라 슬라이싱하거나 원본 복사.
     slicing된 파일에 대한 구간 정보를 csv로 기록.
-
+    
+    수정된 부분: 여러 개로 쪼개진 슬라이스 구간을 하나의 오디오로 병합하여 저장.
+    
     Parameters:
         input_folder (str): 입력 .wav 파일이 있는 디렉터리
         output_folder (str): 슬라이싱된 .wav 파일 또는 복사본을 저장할 디렉터리
@@ -37,7 +41,7 @@ def process_and_slice_audio(input_folder, output_folder, merge_threshold=3.0, mi
     # Pyannote.audio 파이프라인 로드
     pipeline = Pipeline.from_pretrained(
         "pyannote/speaker-diarization-3.1",
-        #use_auth_token="",
+        # use_auth_token="",
     )
     pipeline.to(device)
 
@@ -88,21 +92,19 @@ def process_and_slice_audio(input_folder, output_folder, merge_threshold=3.0, mi
                         seg for seg in speaker_segments if seg[0] == main_speaker
                     ]
 
-                    # 시간 순서 정렬
-                    main_segments.sort(key=lambda x: x[1])  # start 시간 기준 정렬
+                    # 시간 순서 정렬 (start 시간 기준)
+                    main_segments.sort(key=lambda x: x[1])
 
                     # 메인 화자의 발화 구간 병합
                     merged_segments = []
                     if main_segments:
                         current_start, current_end = main_segments[0][1], main_segments[0][2]
-
                         for _, start, end in main_segments[1:]:
                             if start - current_end <= merge_threshold:  # 병합 조건
                                 current_end = max(current_end, end)
                             else:
                                 merged_segments.append((current_start, current_end))
                                 current_start, current_end = start, end
-
                         # 마지막 병합된 구간 추가
                         merged_segments.append((current_start, current_end))
 
@@ -113,7 +115,6 @@ def process_and_slice_audio(input_folder, output_folder, merge_threshold=3.0, mi
                         if end - start >= min_duration
                     ]
 
-                    # final_segments가 존재하면 오디오를 잘라내고, CSV에 기록
                     if final_segments:
                         # 원본 오디오 로드
                         audio = AudioSegment.from_wav(input_path)
@@ -121,37 +122,32 @@ def process_and_slice_audio(input_folder, output_folder, merge_threshold=3.0, mi
                         # CSV에 기록할 row 만들기
                         if csv_writer is not None:
                             row = [base_filename]
-                            
                             for seg_start, seg_end in final_segments:
-                                # 소수점 둘째자리까지 round
                                 row.append(round(seg_start, 2))
                                 row.append(round(seg_end, 2))
                             csv_writer.writerow(row)
 
-                        # 메인 화자의 발화 구간을 기준으로 슬라이싱 및 저장
-                        for idx, (start, end) in enumerate(final_segments):
+                        # 여러 슬라이스 구간을 하나의 오디오로 병합
+                        combined_audio = AudioSegment.empty()
+                        for start, end in final_segments:
                             start_ms = int(start * 1000)  # 초 -> 밀리초
                             end_ms = int(end * 1000)
-                            sliced_audio = audio[start_ms:end_ms]
+                            combined_audio += audio[start_ms:end_ms]
 
-                            output_filename = f"{base_filename}_{idx + 1}.wav"
-                            output_path = os.path.join(output_folder, output_filename)
-
-                            sliced_audio.export(output_path, format="wav")
-                            print(f"Saved sliced audio: {output_path}")
-
+                        output_filename = f"{base_filename}.wav"
+                        output_path = os.path.join(output_folder, output_filename)
+                        combined_audio.export(output_path, format="wav")
+                        print(f"Saved merged sliced audio: {output_path}")
                     else:
                         # min_duration보다 긴 구간이 없다면, 원본 복사
                         output_filename = f"{base_filename}.wav"
                         output_path = os.path.join(output_folder, output_filename)
                         executor.submit(copy_file, input_path, output_path)
-
                 else:
                     # 조건을 만족하지 않는 경우 원본 파일 복사
                     input_path = os.path.join(input_folder, filename)
                     output_filename = f"{base_filename}.wav"
                     output_path = os.path.join(output_folder, output_filename)
-                    # 병렬 복사 작업
                     executor.submit(copy_file, input_path, output_path)
 
     # CSV 파일 닫기
@@ -164,14 +160,14 @@ def process_and_slice_audio(input_folder, output_folder, merge_threshold=3.0, mi
 
 # 입력 및 출력 폴더 설정
 input_folder = "/data/alc_jihan/h_wav_16K"        # 원본 .wav 파일이 위치한 폴더
-output_folder = "/data/alc_jihan/h_wav_16K_sliced"  # 슬라이싱된 파일 또는 복사본을 저장할 폴더
-csv_path = "/data/alc_jihan/split_index/conversation_split.csv"  # slicing 구간 기록용 CSV
+output_folder = "/data/alc_jihan/h_wav_16K_merged"  # 슬라이싱된 파일 또는 복사본을 저장할 폴더
+csv_path = "/data/alc_jihan/split_index/pyannote_conversation_split_merged.csv"  # slicing 구간 기록용 CSV
 
 # 함수 실행
 process_and_slice_audio(
     input_folder,
     output_folder,
     merge_threshold=3.0,
-    min_duration=2.0,
+    min_duration=1.0,
     csv_path=csv_path
 )

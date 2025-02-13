@@ -11,6 +11,7 @@ dirs_to_count = {
     "m_json": os.path.join(destination_dir, "m_json"),
     "h_json": os.path.join(destination_dir, "h_json"),
     "h_wav_16K_sliced": os.path.join(destination_dir, "h_wav_16K_sliced"),
+    "h_wav_16K_merged": os.path.join(destination_dir, "h_wav_16K_merged"),
     "h_wav_slided": os.path.join(destination_dir, "h_wav_slided"),
     "melspectrograms_for_swin": os.path.join(destination_dir, "melspectrograms_for_swin"),
     "extracted_features": os.path.join(destination_dir, "extracted_features"),

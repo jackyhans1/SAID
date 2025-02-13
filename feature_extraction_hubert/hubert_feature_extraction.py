@@ -59,8 +59,8 @@ def extract_features_from_wav(input_dir, output_dir, model_name="facebook/hubert
                 print(f"[{i + 1}/{len(futures)}] Error: {e}")
 
 # Paths to input and output directories
-input_directory = "/data/alc_jihan/h_wav_16K_sliced"
-output_directory = "/data/alc_jihan/extracted_features"
+input_directory = "/data/alc_jihan/h_wav_16K_merged"
+output_directory = "/data/alc_jihan/HuBERT_feature_merged"
 
 # Extract features with parallel processing
 extract_features_from_wav(input_directory, output_directory, num_workers=8)
