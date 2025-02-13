@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_matrix
 import seaborn as sns
 from segdataset import SegmentedAudioDataset, collate_fn
-from swin_transformer_1d import Swin1D
+from swin_transformer_1d_dropout import Swin1D
 
 def test_model(model, dataloader, criterion, device):
     """
@@ -55,7 +55,7 @@ if __name__ == "__main__":
 
     DATA_DIR = "/data/alc_jihan/extracted_features_hubert"
     CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
-    CHECKPOINT_DIR = "/home/ai/said/hubert_1d_swin/checkpoint_win16"
+    CHECKPOINT_DIR = "/home/ai/said/hubert_1d_swin/checkpoint_win32_dropout_2"
     MODEL_PATH = os.path.join(CHECKPOINT_DIR, "best_model.pth")
     
     MAX_SEQ_LENGTH = 2048
@@ -81,7 +81,7 @@ if __name__ == "__main__":
 
     model = Swin1D(
         max_length=MAX_SEQ_LENGTH, 
-        window_size=16, 
+        window_size=32, 
         dim=1024, 
         feature_dim=1024, 
         num_swin_layers=2, 

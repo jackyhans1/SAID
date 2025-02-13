@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_matrix
 import seaborn as sns
 from segdataset import SegmentedAudioDataset, collate_fn
-from swin_transformer_1d import Swin1D
+from swin_transformer_1d_dropout_3 import Swin1D
 
 def test_model(model, dataloader, criterion, device):
     """
@@ -50,12 +50,12 @@ def validate_file_paths(file_names, base_dir):
 
 if __name__ == "__main__":
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
     device = "cuda" if torch.cuda.is_available() else "cpu"
 
     DATA_DIR = "/data/alc_jihan/extracted_features_hubert"
     CSV_PATH = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
-    CHECKPOINT_DIR = "/home/ai/said/hubert_1d_swin/checkpoint_win16"
+    CHECKPOINT_DIR = "/home/ai/said/hubert_1d_swin/checkpoint_win16_dropout_3"
     MODEL_PATH = os.path.join(CHECKPOINT_DIR, "best_model.pth")
     
     MAX_SEQ_LENGTH = 2048
