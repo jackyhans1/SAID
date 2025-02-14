@@ -1,0 +1,46 @@
+address
+  Accuracy: 0.8169
+  UAR: 0.7954
+  Macro F1: 0.7954
+
+dialogue
+  Accuracy: 0.7345
+  UAR: 0.6805
+  Macro F1: 0.6744
+
+monologue
+  Accuracy: 0.7463
+  UAR: 0.7348
+  Macro F1: 0.7295
+
+number
+  Accuracy: 0.7937
+  UAR: 0.7708
+  Macro F1: 0.7660
+
+read_command
+  Accuracy: 0.8224
+  UAR: 0.7688
+  Macro F1: 0.7792
+
+spontaneous_command
+  Accuracy: 0.7730
+  UAR: 0.7280
+  Macro F1: 0.7338
+
+tongue_twister
+  Accuracy: 0.8090
+  UAR: 0.7777
+  Macro F1: 0.7790
+
+=== Group-wise Performance ===
+Spontaneous Speech
+  Accuracy: 0.7567
+  UAR: 0.7208
+  Macro F1: 0.7208
+
+Fixed Text Speech
+  Accuracy: 0.8103
+  UAR: 0.7799
+  Macro F1: 0.7810
+

@@ -15,6 +15,7 @@ dirs_to_count = {
     "h_wav_slided": os.path.join(destination_dir, "h_wav_slided"),
     "melspectrograms_for_swin": os.path.join(destination_dir, "melspectrograms_for_swin"),
     "extracted_features": os.path.join(destination_dir, "extracted_features"),
+    "HuBERT_feature_merged": os.path.join(destination_dir, "HuBERT_feature_merged"),
 }
 
 # 각 디렉토리 파일 수 계산 및 출력

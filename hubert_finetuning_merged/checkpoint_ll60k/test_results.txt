@@ -1,0 +1,5 @@
+Loss: 0.3959
+Accuracy: 0.8227
+UAR: 0.8049
+Macro F1-score: 0.7996
+

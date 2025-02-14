@@ -38,7 +38,7 @@ def extract_features(audio_path):
     - Num_PS: 연속 침묵 구간 간 시작 시간 차 개수
     - Avg_PS: 연속 침묵 구간 간 시작 시간 차 평균
     - Var_PS: 연속 침묵 구간 간 시작 시간 차 분산
-    - Hesitation: 주저어(예, "äh", "ähm", "hm" 등)의 등장 횟수
+    - Hesitation: 주저어("äh", "ähm", "hm" 등)의 등장 횟수
     - P_less_1: 1초 이하의 침묵 구간 개수
     - P_more_1: 1초 초과의 침묵 구간 개수
     - Repetition: 연속해서 반복된 단어 수 (발음이 약간 달라도 유사도가 높으면 count)
