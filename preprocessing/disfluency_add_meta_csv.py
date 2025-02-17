@@ -2,8 +2,8 @@ import pandas as pd
 
 # 파일 경로 정의
 speaext_path = "/data/ALC/TABLE/SPEAEXT.csv"
-disfluency_path = "/data/alc_jihan/extracted_features_whisper_disfluency/all_data_Disfluency_features_more_added.csv"
-output_path = "/data/alc_jihan/extracted_features_whisper_disfluency/all_data_Disfluency_and_metadata.csv"
+disfluency_path = "/data/alc_jihan/extracted_features_whisper_disfluency/merged_data_disflency_whisper.csv"
+output_path = "/data/alc_jihan/extracted_features_whisper_disfluency/merged_data_disflency_meta_data.csv"
 
 # SPEAEXT.csv 데이터 로드
 speaext_df = pd.read_csv(speaext_path)
