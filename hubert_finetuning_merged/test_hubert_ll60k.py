@@ -10,7 +10,7 @@ from torch.utils.data import Dataset, DataLoader
 from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_matrix, ConfusionMatrixDisplay
 
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 
 CSV_PATH = "/data/alc_jihan/split_index/merged_data.csv"
 DATA_PATH = "/data/alc_jihan/h_wav_16K_merged"

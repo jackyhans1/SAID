@@ -6,28 +6,31 @@ import matplotlib.pyplot as plt
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score
 from sklearn.model_selection import GridSearchCV
-from sklearn.preprocessing import LabelEncoder
+from sklearn.pipeline import Pipeline
+from sklearn.feature_selection import SelectKBest, f_classif
 
+# ========================================
+# 1. 데이터 로드 및 전처리
+# ========================================
 DATA_PATH = "/data/alc_jihan/extracted_features_whisper_disfluency/merged_data_disflency_meta_data.csv"
-OUTPUT_IMAGE_PATH = "/home/ai/said/randomforest_merged/checkpoint/gridsearch_rf_feature_importance.png"
-OUTPUT_PARAMS_PATH = "/home/ai/said/randomforest_merged/best_hyperparameters.txt"
+OUTPUT_IMAGE_PATH = "/home/ai/said/randomforest_merged/checkpoint/n_feature_gridsearch_rf_feature_importance.png"
+OUTPUT_PARAMS_PATH = "/home/ai/said/randomforest_merged/n_feature_best_hyperparameters.txt"
 
 df = pd.read_csv(DATA_PATH)
 
 # Task가 'monologue' 또는 'dialogue' 인 데이터만 선택
 df = df[df['Task'].isin(['monologue', 'dialogue'])]
 
-# # One-Hot Encoding 적용: SEX와 SMO
-# df = pd.get_dummies(df, columns=['SEX', 'SMO'], drop_first=True)
-
-# drh_mapping = {'light': 0, 'moderate': 1, 'heavy': 2}
-# df['DRH'] = df['DRH'].map(drh_mapping)
-
+# 여기서는 One-Hot Encoding이나 DRH 매핑 없이, drop_cols에 해당 컬럼들을 제거합니다.
 drop_cols = ['FileName', 'SubjectID', 'Class', 'Split', 'Task', 'Hesitation', 'SEX', 'SMO', 'DRH']
 X = df.drop(columns=drop_cols)
 
+# Class를 이진 label로 변환: Sober → 0, Intoxicated → 1
 y = (df['Class'] == 'Intoxicated').astype(int)
 
+# ========================================
+# 2. Train / Validation / Test 데이터 분할 (Split 컬럼 기준)
+# ========================================
 X_train = X[df['Split'] == 'train']
 y_train = y[df['Split'] == 'train']
 
@@ -39,22 +42,31 @@ y_test  = y[df['Split'] == 'test']
 
 print(f"Train Data: {X_train.shape}, Val Data: {X_val.shape}, Test Data: {X_test.shape}")
 
-# Grid Search를 위한 Random Forest 모델 및 하이퍼파라미터 그리드 설정
-rf = RandomForestClassifier(random_state=42, n_jobs=-1)
+# ========================================
+# 3. 파이프라인 구성: Feature Selection + Random Forest
+# ========================================
+pipeline = Pipeline([
+    ('select', SelectKBest(score_func=f_classif)),
+    ('clf', RandomForestClassifier(random_state=42, n_jobs=-1))
+])
 
+# ========================================
+# 4. Grid Search 파라미터 설정 (feature 수 포함)
+# ========================================
 param_grid = {
-    'n_estimators': [100, 500, 700, 1000],
-    'max_depth': [None, 4, 5, 6, 8, 10,12],
-    'min_samples_split': [2,3,4, 5,6,8, 10],
-    'min_samples_leaf': [1, 2, 4,6,8,10],
-    'max_features': ['sqrt', 'log2', None],
-    'bootstrap': [True],
-    'class_weight': ['balanced_subsample']
+    'select__k': [5, 7, 9, 11, 13, 16],
+    'clf__n_estimators': [100, 300, 500, 700, 1000],
+    'clf__max_depth': [None, 4, 5, 6, 8, 10, 12],
+    'clf__min_samples_split': [2, 3, 4, 5, 6, 8, 10, 12],
+    'clf__min_samples_leaf': [1, 2, 4, 6, 8, 10, 12],
+    'clf__max_features': ['sqrt', 'log2', None],
+    'clf__bootstrap': [True],
+    'clf__class_weight': ['balanced_subsample']
 }
 
-# GridSearchCV 설정 (5-fold CV, scoring은 UAR로 macro recall 사용)
+# GridSearchCV 설정 (5-fold CV, scoring은 UAR (macro recall) 사용)
 grid_search = GridSearchCV(
-    estimator=rf,
+    estimator=pipeline,
     param_grid=param_grid,
     cv=5,
     scoring='recall_macro',
@@ -62,8 +74,9 @@ grid_search = GridSearchCV(
     verbose=1
 )
 
-
-# Grid Search 수행
+# ========================================
+# 5. Grid Search 수행
+# ========================================
 start_time = time.time()
 grid_search.fit(X_train, y_train)
 grid_time = time.time() - start_time
@@ -79,14 +92,17 @@ with open(OUTPUT_PARAMS_PATH, 'w') as f:
         f.write(f"{param}: {value}\n")
 print(f"\nBest hyperparameters saved to: {OUTPUT_PARAMS_PATH}")
 
+# ========================================
+# 6. 최적 모델로 재학습 후 평가
+# ========================================
+best_pipeline = grid_search.best_estimator_
 
-# 최적 모델로 재학습 후 평가
-best_rf = grid_search.best_estimator_
+# 예측 수행
+y_train_pred = best_pipeline.predict(X_train)
+y_val_pred   = best_pipeline.predict(X_val)
+y_test_pred  = best_pipeline.predict(X_test)
 
-y_train_pred = best_rf.predict(X_train)
-y_val_pred   = best_rf.predict(X_val)
-y_test_pred  = best_rf.predict(X_test)
-
+# 평가 지표 계산
 train_accuracy = accuracy_score(y_train, y_train_pred)
 train_uar      = recall_score(y_train, y_train_pred, average='macro')
 
@@ -107,14 +123,20 @@ print(f"Test Macro F1-score: {test_macro_f1:.4f}")
 print(f"Test UAR (Unweighted Average Recall): {test_uar:.4f}")
 print("\nTest Classification Report:\n", classification_report(y_test, y_test_pred))
 
+# ========================================
+# 7. Feature Importance Plot (최적 모델 기준)
+# ========================================
+# best_pipeline는 파이프라인이므로, feature selection 단계 후 선택된 feature에 대해
+# feature importances_는 clf 단계에서 확인합니다.
+best_rf = best_pipeline.named_steps['clf']
+# 선택된 feature 마스크 및 이름 획득
+selected_mask = best_pipeline.named_steps['select'].get_support()
+selected_features = X_train.columns[selected_mask]
 
-# Feature Importance Plot
 importances = best_rf.feature_importances_
-feature_names = X.columns
-
 # 중요도 순으로 정렬
 sorted_idx = np.argsort(importances)[::-1]
-sorted_features = [feature_names[i] for i in sorted_idx]
+sorted_features = [selected_features[i] for i in sorted_idx]
 sorted_importances = importances[sorted_idx]
 
 plt.figure(figsize=(10, 8))

@@ -1,0 +1,8 @@
+Best Hyperparameters from Grid Search:
+bootstrap: True
+class_weight: balanced_subsample
+max_depth: 4
+max_features: sqrt
+min_samples_leaf: 1
+min_samples_split: 8
+n_estimators: 100

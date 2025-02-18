@@ -1,8 +1,8 @@
 import pandas as pd
 
 # 파일 경로
-input_file = "/data/alc_jihan/split_index/dataset_split_sliced.csv"
-output_file = "/data/alc_jihan/split_index/dataset_split_sliced_task_indexed.csv"
+input_file = "/data/alc_jihan/split_index/merged_data_without_task.csv"
+output_file = "/data/alc_jihan/split_index/merged_data.csv"
 
 # Task 매핑 정보
 task_mapping = {
@@ -29,21 +29,32 @@ task_mapping = {
 # CSV 파일 읽기
 df = pd.read_csv(input_file)
 
-# Task 컬럼 추가
-def get_task(file_name, speech_class):
+def get_task(file_name):
     try:
-        # 파일명에서 _ 기준으로 split 후 두 번째 데이터의 마지막 세 자리 숫자 추출
-        last_three_digits = file_name.split("_")[1][-3:]
-        # 매핑된 Task 찾기
-        for task, numbers in task_mapping.get(speech_class, {}).items():
+        # 파일명에서 두 번째 부분 (언더바로 분리) 추출
+        code_str = file_name.split("_")[1]
+        # 마지막 세 자리 숫자 추출 (매핑 번호)
+        last_three_digits = code_str[-3:]
+        # 3번째부터 5번째 문자 추출하여 조건에 맞게 매핑 결정
+        category_code = code_str[3:5]
+        if category_code in {"10", "11", "30"}:
+            mapping_category = "Intoxicated"
+        elif category_code in {"20", "40"}:
+            mapping_category = "Sober"
+        else:
+            return "unknown"
+        
+        # 선택된 매핑에서 해당하는 Task 찾기
+        for task, numbers in task_mapping.get(mapping_category, {}).items():
             if last_three_digits in numbers:
                 return task
         return "unknown"
     except IndexError:
         return "unknown"
 
-df["Task"] = df.apply(lambda row: get_task(row["FileName"], row["Class"]), axis=1)
+# 기존 Class 컬럼 대신 FileName으로부터 Task 결정
+df["Task"] = df["FileName"].apply(get_task)
 
+# 새로운 CSV 파일 저장
 df.to_csv(output_file, index=False)
-
 print(f"새로운 CSV 파일이 생성되었습니다: {output_file}")

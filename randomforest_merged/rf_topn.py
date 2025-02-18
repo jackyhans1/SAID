@@ -2,13 +2,14 @@ import pandas as pd
 import numpy as np
 import time
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score
+from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
 
-# 데이터 로드 및 전처리
 DATA_PATH = "/data/alc_jihan/extracted_features_whisper_disfluency/merged_data_disflency_meta_data.csv"
 OUTPUT_IMAGE_PATH = "/home/ai/said/randomforest_merged/checkpoint/top_n_random_forest_feature_importance.png"
+OUTPUT_CONF_MATRIX_PATH = "/home/ai/said/randomforest_merged/checkpoint/top_n_confusion_matrix.png"
 
 df = pd.read_csv(DATA_PATH)
 
@@ -33,11 +34,11 @@ y_test  = y[df['Split'] == 'test']
 print(f"Train Data: {X_train.shape}, Val Data: {X_val.shape}, Test Data: {X_test.shape}")
 
 params = {
-    'n_estimators': 1000,
+    'n_estimators': 100,
     'max_depth': 5,
-    'min_samples_split': 10,
-    'min_samples_leaf': 4,
-    'max_features': 'sqrt',
+    'min_samples_split': 12,
+    'min_samples_leaf': 1,
+    'max_features': None,
     'class_weight': 'balanced_subsample',
     'bootstrap': True,
     'n_jobs': -1,
@@ -52,7 +53,7 @@ rf_model.fit(X_train, y_train)
 feature_importances = rf_model.feature_importances_
 feature_names = X.columns
 
-num_features = 20
+num_features = 7
 sorted_idx = np.argsort(feature_importances)[::-1][:num_features]
 selected_features = [feature_names[i] for i in sorted_idx]
 
@@ -95,8 +96,16 @@ plt.figure(figsize=(10, 6))
 plt.barh(range(num_features), feature_importances[sorted_idx], align='center')
 plt.yticks(range(num_features), selected_features)
 plt.xlabel("Feature Importance")
-plt.title("Top 20 Feature Importance (Random Forest)")
+plt.title("Top 7 Feature Importance (Random Forest)")
 plt.gca().invert_yaxis()
-
 plt.savefig(OUTPUT_IMAGE_PATH, dpi=300, bbox_inches='tight')
 print(f"\nFeature importance plot saved at: {OUTPUT_IMAGE_PATH}")
+
+cm = confusion_matrix(y_test, y_test_pred)
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.xlabel("Predicted Label")
+plt.ylabel("True Label")
+plt.title("Test Confusion Matrix")
+plt.savefig(OUTPUT_CONF_MATRIX_PATH, dpi=300, bbox_inches='tight')
+print(f"\nConfusion matrix plot saved at: {OUTPUT_CONF_MATRIX_PATH}")
