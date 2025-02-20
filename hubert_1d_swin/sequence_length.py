@@ -16,7 +16,7 @@ def analyze_pt_file(file_path):
     print("Sample values:")
     print(tensor[0, :5, :5])
 
-FILE_PATH = "/data/alc_jihan/extracted_features/0_0062014034_h_00_1.pt"
+FILE_PATH = "/data/alc_jihan/hubert_meta_disfluency_feature_fusion/0_0062014034_h_00.pt"
 if os.path.exists(FILE_PATH):
     analyze_pt_file(FILE_PATH)
 else:
