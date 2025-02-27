@@ -91,7 +91,7 @@ if __name__ == "__main__":
     # 경로 설정
     audio_dir = "/data/alc_jihan/h_wav_16K_merged"
     merged_csv_path = "/data/alc_jihan/split_index/merged_data.csv"
-    script_csv_path = "/data/alc_jihan/split_index/script2.csv"
+    script_csv_path = "/data/alc_jihan/split_index/script3.csv"
     
     # MFA에 사용할 발음 사전 및 음향 모델 경로
     dictionary_path = "/home/ai/Documents/MFA/pretrained_models/dictionary/german_mfa.dict"
@@ -167,8 +167,11 @@ if __name__ == "__main__":
         acoustic_model_path,
         mfa_output_dir,
         "--clean",
-        "--use_gpu"
+        "--use_gpu",
+        "--beam", "15",         # 기본 beam width보다 넓게 설정 (예시 값)
+        "--retry_beam", "40"      # 재시도 beam width 조정 (예시 값)
     ]
+
     
     env = os.environ.copy()
     print("Starting MFA alignment in batch mode...")
