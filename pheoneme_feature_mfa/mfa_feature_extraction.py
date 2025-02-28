@@ -4,7 +4,6 @@ import subprocess
 import csv
 from textgrid import TextGrid, IntervalTier, Interval
 
-# GPU 사용을 위한 환경변수 설정
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 os.environ["MFA_LOG_LEVEL"] = "DEBUG"
@@ -97,16 +96,14 @@ if __name__ == "__main__":
     dictionary_path = "/home/ai/Documents/MFA/pretrained_models/dictionary/german_mfa.dict"
     acoustic_model_path = "/home/ai/Documents/MFA/pretrained_models/acoustic/german_mfa.zip"
     
-    # 결과를 저장할 디렉토리들
     mfa_output_dir = "/data/alc_jihan/phoneme_features_mfa/textgrid"
     canonical_output_dir = "/data/alc_jihan/phoneme_features_mfa/final_output"
     os.makedirs(mfa_output_dir, exist_ok=True)
     os.makedirs(canonical_output_dir, exist_ok=True)
     
-    # CSV에서 사용할 Task 필터
+    # 사용할 Task
     allowed_tasks = {"read_command", "address", "number", "tongue_twister"}
-    
-    # script.csv와 merged_data.csv 로드
+
     script_dict = load_script_dict(script_csv_path)
     merged_file_list = load_merged_data(merged_csv_path, allowed_tasks)
     
@@ -126,14 +123,13 @@ if __name__ == "__main__":
         if not os.path.exists(audio_path):
             print(f"오디오 파일이 존재하지 않습니다: {audio_path}")
             continue
-        
-        # 파일명 예: 0_0062014001_h_00 -> split 결과: ["0", "0062014001", "h", "00"]
+
         parts = file_base.split("_")
         if len(parts) < 2:
             print(f"파일명 형식 오류: {file_base}")
             continue
         num_str = parts[1]
-        # num_str의 [3:5]가 "20" 또는 "40"이면 Sober, 아니면 Intoxicated로 처리
+        
         if num_str[3:5] in {"20", "40"}:
             class_for_prompt = "Sober"
         else:
@@ -168,8 +164,8 @@ if __name__ == "__main__":
         mfa_output_dir,
         "--clean",
         "--use_gpu",
-        "--beam", "15",         # 기본 beam width보다 넓게 설정 (예시 값)
-        "--retry_beam", "40"      # 재시도 beam width 조정 (예시 값)
+        "--beam", "15",         # 기본 beam width보다 넓게 설정
+        "--retry_beam", "40"      # 재시도 beam width 조정
     ]
 
     

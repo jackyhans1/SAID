@@ -211,7 +211,6 @@ def extract_features_from_file(file_path):
     return features
 
 def main():
-    # 경로 설정
     input_dir = "/data/alc_jihan/phoneme_features_mfa/final_output"
     output_csv = "/data/alc_jihan/extracted_features_mfa/mfa_features.csv"
 
@@ -226,7 +225,6 @@ def main():
         writer = csv.DictWriter(csvfile, fieldnames=header)
         writer.writeheader()
         for file_path in files:
-            # 파일명에서 확장자(.TextGrid) 제거하여 FileName 생성
             file_name = os.path.splitext(os.path.basename(file_path))[0]
             features = extract_features_from_file(file_path)
             row = {"FileName": file_name}
