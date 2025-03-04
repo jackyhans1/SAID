@@ -1,0 +1,74 @@
+backer	b a kʰ ɐ
+bemoost	b ə m oː s t
+betegindis	b ə tʰ ɛ ɟ ɪ n d iː s
+betegindis	b ə tʰ ɛ ɟ iː n d iː s
+betegindis	b eː tʰ ə cʰ ɪ n d iː s
+betegindis	b eː tʰ ə ɟ ɪ n d ɪ s
+betegindis	b eː tʰ ə ɟ ɪ n d iː s
+fahlbusch	f aː l b ʊ ʃ
+feststämmig	f ɛ s t ʃ t ɛ m ɪ ç
+frisierter	f ʁ ɪ z iː ɐ tʰ ɐ
+frittierte	f ʁ ɪ tʰ iː ʁ tʰ ə
+gruissches	ɡ ʁ uː ɪ s ʃ ə s
+gässchen	ɟ ɛ s ç ə n
+hademarschen	h a d ə m a ʁ ʃ ə n
+hademarschen	h a d ɛ m a ʁ ʃ ə n
+hademarschen	h aː d ə m a ʁ ʃ ə n
+hademarschen	h aː d ɛ m a ʁ ʃ ə n
+hermenegildis	h ɛ ʁ m ɛ n ɛ ɟ ɪ l d ɪ s
+hanerau	h aː n ə ʁ aw
+kahlekatzenglatzenkratzer	kʰ aː l ə kʰ a ts ə n ɡ l a ts ə n k ʁ a ts ɐ
+katzenglatzen	kʰ a ts ə n ɡ l a ts ə n
+hermengildis	h ɛ ʁ m ə n ɟ ɪ l d ɪ s
+hermengildis	h ɛ ʁ m ə n ɟ iː l d ɪ s
+hermengildis	h ɛ ʁ m ə ɲ ɟ ɪ l d ɪ s
+hermengildis	h ɛ ʁ m ə ɲ ɟ iː l d ɪ s
+hermengildis	h ɛ ʁ m ə ɲ ɟ iː l d iː s
+hermengildis	h ɛ ʁ m ɛ n ɟ ɪ l d ɪ s
+hermengildis	h ɛ ʁ m ɛ ɲ ɪ l d ɪ s
+laurentiusbergstraße	l aw ʁ ɛ n tʰ iː ʊ s b ɛ ʁ k ʃ t ʁ aː s ə
+laurentiusbergstraße	l aw ʁ ɛ n t j ʊ s b ɛ ʁ k ʃ t ʁ aː s ə
+kupferkochtopf	kʰ ʊ pf ɐ kʰ ɔ x tʰ ɔ pf
+krächzer	k ʁ ɛ ç t s ɐ
+manumentenmacher	m a n ʊ m ɛ n tʰ ə n m a x ɐ
+madapaka	m a d a pʰ a k a
+madapaka	m a d a pʰ aː kʰ a
+liesl	l iː s l
+liesl	l iː z ə l
+messwechsel	m eː s v ɛ k s ə l
+messwechsel	m ɛ s v ɛ k s ə l
+megahertz	m eː ɡ a h ɛ ʁ ts
+marktgraitz	m a ʁ k t ɡ ʁ aː ɪ ts
+marktgraitz	m a ʁ k t ɡ ʁ ɛ ɪ ts
+marktgraitz	m a ʁ k t ɡ ʁ aj ts
+muselmann	m uː z ə l m a n
+morder	m ɔ ʁ d ɐ
+mohren	m oː ɐ n
+mohren	m oː ʁ ə n
+preset	p ʁ eː z ə t
+preset	p ʁ ɛ ə t
+petzten	pʰ ɛ ts t ə n
+siebenundachtzig	z iː b ə n ʊ n tʰ a x ts ɪ ç
+neunundsiebzig	n ɔʏ n ʊ n t z iː p ts ɪ ç
+starennest	ʃ t aː ə n ɛ s t
+schwarenbergstraße	ʃ v a ʁ ə n b ɛ ʁ k ʃ t ʁ aː s ə
+schwarenbergstraße	ʃ v aː ʁ ə n b ɛ ʁ k ʃ t ʁ aː s ə
+routenoptionen	ʁ uː tʰ ə n ɔ p t s ɪ oː n ə n
+sportplatzweg	ʃ p ɔ ʁ t p l a ts v eː k
+tupfenkopftuch	tʰ ʊ pf ə n kʰ ɔ pf tʰ uː x
+siebenundsiebzig	z iː b ə n ʊ n t z iː p ts ɪ ç
+stromwärts	ʃ t ʁ oː m v ɛ ʁ t s
+straße	ʃ t ʁ aː s ə
+zechenschwarze	ts ɛ ç ə n ʃ v a ʁ ts ə
+wachsmaske	v a k s m a s k ə
+weende	v eː n d ə
+weende	v eː ɛ n d ə
+weende	v ɛ ɛ n d ə
+zweiundneunzig	ts v aj ʊ n t n ɔʏ n ts ɪ ç
+zimpelpum	ts ɪ m pʰ ə l pʰ ʊ m
+zerstob	ts ɛ ʁ ʃ t ɔ p
+zwickt	ts v ɪ k t
+zwergschwalben	ts v ɛ ʁ k ʃ v a l b ə n
+zwetschgenzweigen	ts v ɛ tʃ ɡ ə n ts v aj ɡ ə n
+zwetschgenzweigen	ts v ɛ tʃ ɟ ɛ n ts v aj ɡ ə n
+zwitschernde	ts v ɪ t ʃ ɐ n d ə
