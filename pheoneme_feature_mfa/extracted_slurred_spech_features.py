@@ -212,7 +212,7 @@ def extract_features_from_file(file_path):
 
 def main():
     input_dir = "/data/alc_jihan/phoneme_features_mfa/final_output"
-    output_csv = "/data/alc_jihan/extracted_features_mfa/mfa_features.csv"
+    output_csv = "/data/alc_jihan/extracted_features_mfa/mfa_features2.csv"
 
     files = glob.glob(os.path.join(input_dir, "*.TextGrid"))
     header = ["FileName", "LevenshteinDistance", "NormalizedLevenshtein", 
@@ -234,3 +234,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

@@ -8,7 +8,7 @@ from sklearn.metrics import accuracy_score, classification_report, f1_score, rec
 from sklearn.model_selection import GridSearchCV
 
 # 파일 경로 설정
-DATA_PATH = "/data/alc_jihan/extracted_features_mfa/final_mfa_features.csv"
+DATA_PATH = "/data/alc_jihan/extracted_features_mfa/final_mfa_features2.csv"
 OUTPUT_IMAGE_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/grid_search_random_forest_feature_importance.png"
 OUTPUT_CONF_MATRIX_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/grid_search_confusion_matrix.png"
 
@@ -18,7 +18,7 @@ df['Class'] = df['Class'].map({'Sober': 0, 'Intoxicated': 1})
 
 # 사용할 5개 feature 선택
 selected_features = ['NormalizedLevenshtein', 'NormalizedMispronouncedWords',
-                     'NormalizedVowelMispronunciations', 'WEI', 'HEI']
+                     'NormalizedVowelMispronunciations']
 X = df[selected_features]
 y = df['Class']
 

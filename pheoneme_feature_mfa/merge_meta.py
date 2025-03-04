@@ -1,8 +1,8 @@
 import pandas as pd
 
-mfa_features_path = "/data/alc_jihan/extracted_features_mfa/mfa_features.csv"
+mfa_features_path = "/data/alc_jihan/extracted_features_mfa/mfa_features2.csv"
 metadata_path = "/data/alc_jihan/extracted_features_whisper_disfluency/merged_data_disflency_meta_data.csv"
-output_path = "/data/alc_jihan/extracted_features_mfa/final_mfa_features.csv"
+output_path = "/data/alc_jihan/extracted_features_mfa/final_mfa_features2.csv"
 
 features_df = pd.read_csv(mfa_features_path)
 

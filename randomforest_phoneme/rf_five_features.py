@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score, confusion_matrix
 
 # 파일 경로 설정
-DATA_PATH = "/data/alc_jihan/extracted_features_mfa/final_mfa_features.csv"
+DATA_PATH = "/data/alc_jihan/extracted_features_mfa/final_mfa_features2.csv"
 OUTPUT_IMAGE_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/5features_random_forest_feature_importance.png"
 OUTPUT_CONF_MATRIX_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/5features_confusion_matrix.png"
 
@@ -36,11 +36,11 @@ print(f"Train Data: {X_train.shape}, Val Data: {X_val.shape}, Test Data: {X_test
 
 # Random Forest 모델 파라미터 지정
 params = {
-    'n_estimators': 700,
+    'n_estimators': 500,
     'max_depth': 7,
     'min_samples_split': 20,
-    'min_samples_leaf': 8,
-    'max_features': None,
+    'min_samples_leaf': 4,
+    'max_features': 'sqrt',
     'class_weight': 'balanced_subsample',
     'bootstrap': True,
     'n_jobs': -1,

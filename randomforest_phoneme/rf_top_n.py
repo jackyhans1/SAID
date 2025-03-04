@@ -7,7 +7,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, classification_report, f1_score, recall_score, confusion_matrix
 
 # 파일 경로 설정
-DATA_PATH = "/data/alc_jihan/extracted_features_mfa/final_mfa_features.csv"
+DATA_PATH = "/data/alc_jihan/extracted_features_mfa/final_mfa_features2.csv"
 OUTPUT_IMAGE_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/top_n_random_forest_feature_importance.png"
 OUTPUT_CONF_MATRIX_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/top_n_confusion_matrix.png"
 
