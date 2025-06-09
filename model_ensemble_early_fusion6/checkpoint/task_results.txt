@@ -1,0 +1,11 @@
+address              Acc 0.8071 UAR 0.7813 F1 0.7832
+dialogue             Acc 0.7486 UAR 0.7296 F1 0.7083
+monologue            Acc 0.6900 UAR 0.6910 F1 0.6784
+number               Acc 0.8213 UAR 0.7870 F1 0.7914
+read_command         Acc 0.8185 UAR 0.7804 F1 0.7813
+spontaneous_command  Acc 0.7573 UAR 0.7333 F1 0.7275
+tongue_twister       Acc 0.7947 UAR 0.7387 F1 0.7503
+
+=== Group-wise ===
+Spontaneous     Acc 0.7373 UAR 0.7219 F1 0.7108
+Fixed           Acc 0.8100 UAR 0.7721 F1 0.7773

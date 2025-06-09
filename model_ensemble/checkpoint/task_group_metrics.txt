@@ -1,0 +1,12 @@
+=== Task-wise ===
+address               Acc 0.8259  UAR 0.8226  F1 0.8116
+dialogue              Acc 0.7543  UAR 0.7011  F1 0.6972
+monologue             Acc 0.7550  UAR 0.7326  F1 0.7333
+number                Acc 0.7680  UAR 0.7809  F1 0.7531
+read_command          Acc 0.8000  UAR 0.7583  F1 0.7590
+spontaneous_command   Acc 0.7813  UAR 0.7355  F1 0.7416
+tongue_twister        Acc 0.8160  UAR 0.8029  F1 0.7942
+
+=== Group-wise ===
+Spontaneous Speech    Acc 0.7680  UAR 0.7279  F1 0.7304
+Fixed Text Speech     Acc 0.8033  UAR 0.7947  F1 0.7824

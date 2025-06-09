@@ -37,7 +37,7 @@ def extract_features(file_path, output_dir, model_name, device):
     except Exception as e:
         print(f"Error processing {file_name}: {e}")
 
-def extract_features_from_wav(input_dir, output_dir, model_name="facebook/hubert-large-ll60k", num_workers=8):
+def extract_features_from_wav(input_dir, output_dir, model_name="facebook/hubert-large-ls960-ft", num_workers=8):
     
     os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
     os.environ["CUDA_VISIBLE_DEVICES"] = "2"
@@ -60,7 +60,7 @@ def extract_features_from_wav(input_dir, output_dir, model_name="facebook/hubert
 
 # Paths to input and output directories
 input_directory = "/data/alc_jihan/h_wav_16K_merged"
-output_directory = "/data/alc_jihan/HuBERT_feature_merged"
+output_directory = "/data/alc_jihan/HuBERT_feature_merged_ls960"
 
 # Extract features with parallel processing
 extract_features_from_wav(input_directory, output_directory, num_workers=8)

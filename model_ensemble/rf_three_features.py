@@ -8,8 +8,8 @@ from sklearn.metrics import accuracy_score, classification_report, f1_score, rec
 
 # 파일 경로 설정
 DATA_PATH = "/data/alc_jihan/extracted_features_mfa/final_mfa_features2.csv"
-OUTPUT_IMAGE_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/5features_random_forest_feature_importance.png"
-OUTPUT_CONF_MATRIX_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/5features_confusion_matrix.png"
+OUTPUT_IMAGE_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/3features_random_forest_feature_importance.png"
+OUTPUT_CONF_MATRIX_PATH = "/home/ai/said/randomforest_phoneme/checkpoint/3features_confusion_matrix.png"
 
 # 데이터 로드
 df = pd.read_csv(DATA_PATH)
@@ -20,7 +20,7 @@ df['Class'] = df['Class'].map({'Sober': 0, 'Intoxicated': 1})
 # 모델에 사용할 5개 feature 선택
 # (주의: 추출 단계에서 생성한 컬럼명이 'NormalizedMispronouncedWords'로 되어 있다고 가정)
 selected_features = ['NormalizedLevenshtein', 'NormalizedMispronouncedWords', 
-                     'NormalizedVowelMispronunciations', 'WEI', 'HEI']
+                     'NormalizedVowelMispronunciations']
 X = df[selected_features]
 y = df['Class']
 
@@ -36,10 +36,10 @@ print(f"Train Data: {X_train.shape}, Val Data: {X_val.shape}, Test Data: {X_test
 
 # Random Forest 모델 파라미터 지정
 params = {
-    'n_estimators': 500,
-    'max_depth': 7,
+    'n_estimators': 100,
+    'max_depth': None,
     'min_samples_split': 20,
-    'min_samples_leaf': 4,
+    'min_samples_leaf': 1,
     'max_features': 'sqrt',
     'class_weight': 'balanced_subsample',
     'bootstrap': True,
