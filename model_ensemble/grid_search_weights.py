@@ -1,11 +1,4 @@
-#!/usr/bin/env python
-"""
-Grid-search for optimal ensemble weights
-  • Spontaneous : Swin + CNN  (RF=0)
-  • Fixed       : Swin + RF   (CNN=0)
-  • 남아있는 가중치는 항상 ∑ = 1 로 재정규화
-결과: /home/ai/said/model_ensemble/best_weights.json
-"""
+# Grid-search for optimal ensemble weights
 import os, json, argparse, itertools, numpy as np, pandas as pd
 from sklearn.metrics import f1_score
 
@@ -16,7 +9,6 @@ OUT_JSON = "/home/ai/said/model_ensemble/best_weights.json"
 SPONT_SET = {"monologue","dialogue","spontaneous_command"}
 FIXED_SET = {"number","read_command","address","tongue_twister"}
 
-# ────────────────── 인자 ────────────────── #
 ap = argparse.ArgumentParser()
 ap.add_argument("--split", default="val", choices=["train","val","test"])
 ap.add_argument("--step",  type=float, default=0.05)
@@ -31,7 +23,6 @@ def load_npz(name):
 
 prob_swin, prob_cnn, prob_rf = map(load_npz, ("swin","cnn","rf"))
 
-# ────────── validation 메타데이터 ────────── #
 df   = pd.read_csv(CSV_PATH)
 sub  = df[df["Split"] == args.split].reset_index(drop=True)
 FN   = sub["FileName"].tolist()
@@ -42,7 +33,6 @@ idx_all   = np.arange(len(FN))
 idx_spont = np.array([i for i,t in enumerate(TASK) if t in SPONT_SET])
 idx_fixed = np.array([i for i,t in enumerate(TASK) if t in FIXED_SET])
 
-# ────────── 확률 합성 함수 ────────── #
 def combine(p_dicts, ws):
     """p_dicts: [prob_swin, prob_cnn, prob_rf], ws: [w_s,w_c,w_r]"""
     p_sum = np.zeros(2, dtype=np.float32)
@@ -67,7 +57,7 @@ def f1_for(indices, ws):
         preds.append(int(p[1] > p[0]))
     return f1_score(LAB[indices], preds, average="macro")
 
-# ────────── 그리드 탐색 ────────── #
+# grid search for best weights
 grid = np.arange(0,1+1e-9,args.step)
 best = {"overall":(-1,None),"spont":(-1,None),"fixed":(-1,None)}
 
@@ -75,7 +65,6 @@ for a,b in itertools.product(grid, grid):
     if a + b > 1: continue
     c = 1 - a - b
 
-    # 전체 (제약 없음)
     f_all = f1_for(idx_all, (a,b,c))
     if f_all > best["overall"][0]:
         best["overall"] = (f_all, (a,b,c))
@@ -90,7 +79,6 @@ for a,b in itertools.product(grid, grid):
     if f_fx > best["fixed"][0]:
         best["fixed"] = (f_fx, (a,0,c))
 
-# ────────── 결과 저장 ────────── #
 out = {
     "split": args.split,
     "step":  args.step,

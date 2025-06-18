@@ -19,7 +19,7 @@ parser.add_argument("--save_dir", default="/home/ai/said/dysfluency_cnn97_spon/m
 parser.add_argument("--batch_size", type=int, default=128)
 parser.add_argument("--epochs", type=int, default=50)
 parser.add_argument("--lr", type=float, default=1e-4)
-parser.add_argument("--modal", default="img")  # for print formatting
+parser.add_argument("--modal", default="img") 
 args = parser.parse_args()
 
 os.makedirs(args.save_dir, exist_ok=True)

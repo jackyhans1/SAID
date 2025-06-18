@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# MFA 특징 → Random-Forest 확률 저장 (.npz)
 import os, argparse, numpy as np, pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 

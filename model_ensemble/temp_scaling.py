@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# temp_scaling.py
 import numpy as np
 
 def softmax_np(x):

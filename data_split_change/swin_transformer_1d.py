@@ -4,6 +4,7 @@ import torch.nn as nn
 import numpy as np
 import json
 import torch.nn.functional as F
+# from torch.nn.utils.parametrizations import weight_norm
 from torch.autograd import Variable
 
 __all__ = [

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# HuBERT feature → Swin1D 확률 저장 (.npz)
 import os, argparse, numpy as np, torch, pandas as pd
 from torch.utils.data import DataLoader
 from segdataset import SegmentedAudioDataset, collate_fn
@@ -19,7 +17,7 @@ def main():
     ap.add_argument("--ckpt", default="/home/ai/said/hubert_1d_swin_merged/checkpoint_win32/best_model.pth")
     ap.add_argument("--max_len", type=int, default=2048)
     ap.add_argument("--batch",   type=int, default=64)
-    ap.add_argument("--out")                    # 파일명만 주면 SAVE_DIR에 저장
+    ap.add_argument("--out")         
     args = ap.parse_args()
 
     if args.out is None:
@@ -29,7 +27,7 @@ def main():
 
     df = pd.read_csv(args.csv)
     sub = df[df["Split"] == args.split].reset_index(drop=True)
-    fnames = sub["FileName"].tolist()                            # 이미 베이스 이름
+    fnames = sub["FileName"].tolist()                     
     paths  = [os.path.join(args.feature_root, fn + ".pt") for fn in fnames]
 
     ds = SegmentedAudioDataset(paths, [0]*len(fnames), max_seq_length=args.max_len)

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Early-Fusion 학습 스크립트 (v2)
 ────────────────────────────────────────────
@@ -17,7 +16,6 @@ from torch.utils.data import DataLoader
 from sklearn.metrics import accuracy_score, recall_score, f1_score
 import utils, early_dataset, models_fusion
 
-# ───────────────────────── CLI ──────────────────────────────
 parser = argparse.ArgumentParser()
 parser.add_argument("--csv",      default="/data/alc_jihan/split_index/merged_data.csv")
 parser.add_argument("--feat_root",default="/data/alc_jihan/HuBERT_feature_merged")
@@ -35,7 +33,6 @@ os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"]="1"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
-# ───────────────────── Data ────────────────────────────────
 train_ds = early_dataset.EarlyFusionDataset(args.csv,args.feat_root,args.img_root,
                                             args.rf_csv,"train")
 val_ds   = early_dataset.EarlyFusionDataset(args.csv,args.feat_root,args.img_root,
@@ -43,7 +40,6 @@ val_ds   = early_dataset.EarlyFusionDataset(args.csv,args.feat_root,args.img_roo
 train_ld = DataLoader(train_ds,batch_size=args.batch,shuffle=True,num_workers=16,pin_memory=True)
 val_ld   = DataLoader(val_ds,batch_size=args.batch,shuffle=False,num_workers=16,pin_memory=True)
 
-# ───────────────────── Model ───────────────────────────────
 model = models_fusion.EarlyFusionNet().to(device)
 
 # ───── Optimizer: 두 파라미터 그룹 (Swin vs Others) ───────
@@ -61,11 +57,9 @@ opt = optim.AdamW([pg_backbone, pg_others], weight_decay=1e-2)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs-5)
 warmup_scheduler = optim.lr_scheduler.LinearLR(opt, start_factor=0.1, total_iters=5)
 
-# ───── Loss (class-imbalance 보정) ─────────────────────────
 class_w = utils.calc_class_weights(train_ds.df["Class"].map({"Sober":0,"Intoxicated":1})).to(device)
 crit    = nn.CrossEntropyLoss(weight=class_w)
 
-# ───── Freeze helpers ─────────────────────────────────────
 def set_requires(model, flag):
     for p in model.parameters(): p.requires_grad = flag
 def freeze_swin_full():
@@ -78,13 +72,11 @@ def unfreeze_swin_all():
 
 freeze_swin_full()    # 초기 완전 freeze
 
-# ───── Metric 기록 ────────────────────────────────────────
 hist = {"tr_loss":[], "va_loss":[], "tr_acc":[], "va_acc":[],
         "tr_uar":[],  "va_uar":[],  "tr_f1":[],  "va_f1":[]}
 
 best_uar, patience_cnt = 0.0, 0
 
-# ───── Train Loop ─────────────────────────────────────────
 for ep in range(1, args.epochs+1):
 
     # stage-wise unfreeze + LR 조정
@@ -126,7 +118,6 @@ for ep in range(1, args.epochs+1):
     if ep <= 5: warmup_scheduler.step()
     else:       scheduler.step()
 
-    # Early-Stopping (UAR)
     if hist["va_uar"][-1] > best_uar :
         best_uar = hist["va_uar"][-1]; patience_cnt = 0
         torch.save(model.state_dict(), f"{args.save_dir}/best.pth")
@@ -137,7 +128,6 @@ for ep in range(1, args.epochs+1):
         if patience_cnt >= args.patience:
             print("  ⏹ Early-Stopping triggered"); break
 
-# ───── Plot 저장 ──────────────────────────────────────────
 def plot_metric(tr, va, name):
     plt.figure(figsize=(8,4))
     plt.plot(tr,label="Train"); plt.plot(va,label="Val")

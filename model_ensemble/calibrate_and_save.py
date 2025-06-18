@@ -1,10 +1,6 @@
-#!/usr/bin/env python
-"""
-Temperature-Scaling Calibration
-───────────────────────────────
-각 모델(swin, cnn, rf)의 validation softmax → logit/T 최적화
-calibrated 확률을  probs_<model>_<split>_calib.npz 로 저장
-"""
+# Temperature-Scaling Calibration
+# 각 모델(swin, cnn, rf)의 validation softmax → logit/T 최적화
+
 import os, numpy as np, pandas as pd, torch, torch.nn as nn
 from torch.optim import LBFGS
 

@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-# SSM 이미지 → CNN 확률 저장 (.npz)
 import os, argparse, numpy as np, torch
 from torch.utils.data import DataLoader
 from dataset import AlcoholDataset
@@ -28,7 +26,6 @@ def main():
         args.out = os.path.join(SAVE_DIR, args.out)
 
     ds = AlcoholDataset(args.csv, args.img_root, split=args.split)
-    # ds.fnames 예: ["0_5604058058_h_00.png", ...] → 확장자 제거
     base_names = [os.path.splitext(os.path.basename(f))[0] for f in ds.fnames]
     dl = DataLoader(ds, batch_size=args.batch, shuffle=False, num_workers=8)
 

@@ -1,4 +1,3 @@
-# model_split_accuracy.py
 import numpy as np, pandas as pd
 from sklearn.metrics import accuracy_score
 CKPT="/home/ai/said/model_ensemble/checkpoint"; CSV="/data/alc_jihan/split_index/merged_data.csv"

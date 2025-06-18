@@ -1,11 +1,9 @@
-#!/usr/bin/env python
 """
 Selective Ensemble:   Swin 확신 구간 외에서는 보조 모델 사용
 ─────────────────────────────────────────────────────────
 * 자유 발화  → CNN fallback
 * 고정 발화  → RF  fallback
 확신 경계(low, high)는 validation split에서 F1 최적화로 탐색
-결과 / 그래프는 checkpoint 폴더에 저장
 """
 import os, json, argparse, numpy as np, pandas as pd, matplotlib.pyplot as plt, seaborn as sns
 from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_matrix
@@ -15,7 +13,6 @@ SPONT = {"monologue","dialogue","spontaneous_command"}
 FIXED = {"number","read_command","address","tongue_twister"}
 
 def load(model, split):
-    # d = np.load(f"{CKPT}/probs_{model}_{split}.npz", allow_pickle=False)
     d = np.load(f"{CKPT}/probs_{model}_{split}_calib.npz", allow_pickle=False)
     fn = [os.path.splitext(x)[0] for x in d["fnames"].astype(str)]
     return dict(zip(fn, d["probs"]))
@@ -64,7 +61,6 @@ uar = recall_score(y, pred, average="macro")
 f1  = f1_score(y, pred, average="macro")
 print(f"[Selective] Acc {acc:.4f}  UAR {uar:.4f}  F1 {f1:.4f}")
 
-# ── 저장 ────────────────────────────────────
 with open(f"{CKPT}/sel_metrics.txt","w") as f:
     json.dump({"Acc":acc,"UAR":uar,"F1":f1,
                "low":best_lo,"high":best_hi},f,indent=2)

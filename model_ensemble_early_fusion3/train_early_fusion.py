@@ -1,7 +1,4 @@
-#!/usr/bin/env python
 """
-Early-Fusion 학습 스크립트
-────────────────────────────────────────────
 · Epoch 0~4  : Swin 파라미터 freeze  → 보조 branch 안정화
 · Epoch 5~N-1: Swin unfreeze         → 전체 joint fine-tuning
 · Early-Stopping 기준 : validation UAR
@@ -11,10 +8,8 @@ import os, argparse, torch, torch.nn as nn, torch.optim as optim, matplotlib.pyp
 from torch.utils.data import DataLoader
 from sklearn.metrics import f1_score, recall_score, accuracy_score
 import numpy as np
-
 import early_dataset, models_fusion, utils
 
-# ────────── CLI ──────────────────────────────────────────────
 parser = argparse.ArgumentParser()
 parser.add_argument("--csv",      default="/data/alc_jihan/split_index/merged_data.csv")
 parser.add_argument("--feat_root",default="/data/alc_jihan/HuBERT_feature_merged")
@@ -31,7 +26,6 @@ os.makedirs(args.save_dir, exist_ok=True)
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"; os.environ["CUDA_VISIBLE_DEVICES"]="0"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ────────── Dataset & Dataloader ────────────────────────────
 train_ds = early_dataset.EarlyFusionDataset(args.csv,args.feat_root,args.img_root,
                                             args.rf_csv,"train")
 val_ds   = early_dataset.EarlyFusionDataset(args.csv,args.feat_root,args.img_root,
@@ -39,10 +33,8 @@ val_ds   = early_dataset.EarlyFusionDataset(args.csv,args.feat_root,args.img_roo
 train_ld = DataLoader(train_ds,batch_size=args.batch,shuffle=True,num_workers=16,pin_memory=True)
 val_ld   = DataLoader(val_ds,batch_size=args.batch,shuffle=False,num_workers=16,pin_memory=True)
 
-# ────────── Model / Loss / Optim / Sched ────────────────────
 model = models_fusion.EarlyFusionNet().to(device)
 
-# class-imbalance 보정
 class_weights = utils.calc_class_weights(
     train_ds.df["Class"].map({"Sober":0,"Intoxicated":1})
 ).to(device)
@@ -51,12 +43,10 @@ crit = nn.CrossEntropyLoss(weight=class_weights)
 opt  = optim.AdamW(model.parameters(), lr=1e-4, weight_decay=1e-2)
 scheduler = optim.lr_scheduler.CosineAnnealingLR(opt, T_max=args.epochs)
 
-# ────────── Freeze helper ───────────────────────────────────
 def set_swin_freeze(net, freeze=True):
-    for p in net.hubert.parameters():   # EarlyFusionNet 안에서 Swin은 hubert
+    for p in net.hubert.parameters():
         p.requires_grad = not freeze
 
-# ────────── Metric 기록용 리스트 ─────────────────────────────
 tr_loss, va_loss = [], []
 tr_acc , va_acc  = [], []
 tr_uar , va_uar  = [], []
@@ -64,7 +54,7 @@ tr_f1  , va_f1   = [], []
 
 best_uar, patience_cnt = 0.0, 0
 
-# ────────── Train Loop ──────────────────────────────────────
+
 for ep in range(1, args.epochs+1):
     # ① Swin freeze/unfreeze 스케줄
     freeze_flag = ep <= args.freeze_epochs
@@ -89,7 +79,6 @@ for ep in range(1, args.epochs+1):
                 preds.extend(out.argmax(1).cpu().numpy())
                 trues.extend(y.cpu().numpy())
 
-        # metrics
         acc = accuracy_score(trues, preds)
         uar = recall_score(trues, preds, average="macro")
         f1  = f1_score(trues, preds, average="macro")
@@ -101,7 +90,6 @@ for ep in range(1, args.epochs+1):
         print(f"[{ep:02d}] {phase:<5s} loss {loss_sum/len(loader.dataset):.4f} "
               f"acc {acc:.4f} uar {uar:.4f} f1 {f1:.4f}")
 
-    # ② Early-Stopping (validation UAR 기준)
     if va_uar[-1] > best_uar:
         best_uar = va_uar[-1]; patience_cnt = 0
         torch.save(model.state_dict(), f"{args.save_dir}/best.pth")
@@ -114,7 +102,6 @@ for ep in range(1, args.epochs+1):
 
     scheduler.step()
 
-# ────────── Plot 함수 및 저장 ────────────────────────────────
 def plot_metrics(tr, va, name, path):
     plt.figure(figsize=(8,4))
     plt.plot(tr, label=f"Train {name}"); plt.plot(va, label=f"Val {name}")

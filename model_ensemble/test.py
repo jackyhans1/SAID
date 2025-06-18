@@ -41,7 +41,6 @@ os.makedirs(args.save_dir, exist_ok=True)
 
 utils.save_confusion_matrix(trues_all, preds_all, os.path.join(args.save_dir, "confusion_matrix.png"))
 
-# summary bar chart
 plt.figure()
 plt.bar(["Accuracy", "UAR", "F1"], [acc, uar, f1])
 for i, v in enumerate([acc, uar, f1]):

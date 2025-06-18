@@ -1,9 +1,4 @@
-#!/usr/bin/env python
-# ensemble_vote.py
-"""
-HuBERT-Swin · SSM-CNN · MFA-RF Soft Voting + Speech-type Gating
-결과 저장: /home/ai/said/model_ensemble/checkpoint
-"""
+#HuBERT-Swin · SSM-CNN · MFA-RF Soft Voting + Speech-type Gating
 import os, argparse, json, warnings
 import numpy as np, pandas as pd
 import torch
@@ -16,11 +11,10 @@ import matplotlib.pyplot as plt, seaborn as sns
 from segdataset import SegmentedAudioDataset, collate_fn
 from swin_transformer_1d import Swin1D
 from models import AlcoholCNN
-from dataset import AlcoholDataset      # SSM-CNN용
+from dataset import AlcoholDataset      
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# ───────────────────────────── CLI ───────────────────────────── #
 parser = argparse.ArgumentParser()
 parser.add_argument("--csv",
                     default="/data/alc_jihan/split_index/merged_data.csv")
@@ -53,7 +47,6 @@ FIXED_SET = {"number", "read_command", "address", "tongue_twister"}
 W_FIXED  = np.array([float(x) for x in args.w_fixed.split(",")])
 W_SPONT  = np.array([float(x) for x in args.w_spont.split(",")])
 
-# ───────────────────── Helper ───────────────────── #
 def softmax_np(x: np.ndarray) -> np.ndarray:
     e = np.exp(x - x.max(1, keepdims=True))
     return e / e.sum(1, keepdims=True)
@@ -66,14 +59,12 @@ def save_cm(y_true, y_pred, path):
     plt.xlabel("Predicted"); plt.ylabel("True")
     plt.tight_layout(); plt.savefig(path); plt.close()
 
-# ───────────────────── Load test list ────────────── #
 df      = pd.read_csv(args.csv)
 df_test = df[df["Split"] == "test"].reset_index(drop=True)
 FNAMES  = df_test["FileName"].tolist()
 TASKS   = df_test["Task"].tolist()
 Y_TRUE  = (df_test["Class"] == "Intoxicated").astype(int).tolist()
 
-# ───────────────────── Swin probs ────────────────── #
 os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -97,7 +88,6 @@ with torch.no_grad():
             probs_swin[FNAMES[idx+i]] = prob[i]
         idx += prob.shape[0]
 
-# ───────────────────── CNN probs ─────────────────── #
 cnn = AlcoholCNN().to(device)
 cnn.load_state_dict(torch.load(args.cnn_ckpt, map_location=device))
 cnn.eval()
@@ -115,7 +105,6 @@ with torch.no_grad():
             probs_cnn[FNAMES_CNN[idx+i]] = prob[i]
         idx += prob.shape[0]
 
-# ───────────────────── RF probs (fixed only) ─────── #
 rf_df = pd.read_csv(args.rf_feat_csv)
 rf_df["Class"] = rf_df["Class"].map({"Sober":0, "Intoxicated":1})
 SEL = ["NormalizedLevenshtein",
@@ -142,7 +131,6 @@ missing = set(FNAMES) - set(RF_FNS)
 if missing:
     print(f"[RF] Warning: {len(missing)} test files had no RF features.")
 
-# ───────────────────── Ensemble Voting ───────────── #
 Y_PRED, PROBS_FINAL = [], []
 
 for fn, task in zip(FNAMES, TASKS):
@@ -164,7 +152,6 @@ for fn, task in zip(FNAMES, TASKS):
     PROBS_FINAL.append(p_final)
     Y_PRED.append(int(p_final[1] > p_final[0]))
 
-# ───────────────────── 전체 성능 & 저장 ───────────── #
 acc = accuracy_score(Y_TRUE, Y_PRED)
 uar = recall_score(Y_TRUE, Y_PRED, average="macro")
 f1  = f1_score(Y_TRUE, Y_PRED, average="macro")
@@ -181,7 +168,6 @@ np.savez_compressed(os.path.join(SAVE_DIR, "probs_ensemble.npz"),
                     preds=np.array(Y_PRED),
                     trues=np.array(Y_TRUE))
 
-# ───────────────────── Task-wise Performance ─────── #
 task_metrics = {}
 for t in sorted(set(TASKS)):
     idx = [i for i, tk in enumerate(TASKS) if tk == t]
@@ -193,7 +179,6 @@ for t in sorted(set(TASKS)):
         "f1":  f1_score(y_t, y_p, average="macro")
     }
 
-# plot
 tasks_sorted = list(task_metrics.keys())
 accs = [task_metrics[t]["acc"] for t in tasks_sorted]
 uars = [task_metrics[t]["uar"] for t in tasks_sorted]
@@ -213,7 +198,6 @@ plt.xlabel("Task"); plt.ylabel("Score"); plt.title("Task-wise Performance")
 plt.legend(); plt.tight_layout()
 plt.savefig(os.path.join(SAVE_DIR, "task_performance.png")); plt.close()
 
-# ───────────────────── Group-wise Performance ────── #
 grp_names = ["Spontaneous Speech", "Fixed Text Speech"]
 grp_idx   = [
     [i for i,t in enumerate(TASKS) if t in SPONT_SET],
@@ -246,7 +230,6 @@ plt.xlabel("Speech Type"); plt.ylabel("Score"); plt.title("Group-wise Performanc
 plt.legend(); plt.tight_layout()
 plt.savefig(os.path.join(SAVE_DIR, "group_performance.png")); plt.close()
 
-# ───────────────────── 텍스트 요약 저장 ───────────── #
 with open(os.path.join(SAVE_DIR, "task_group_metrics.txt"), "w") as f:
     f.write("=== Task-wise ===\n")
     for t in tasks_sorted:

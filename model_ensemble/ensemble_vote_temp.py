@@ -1,15 +1,13 @@
-#!/usr/bin/env python
 """
 HuBERT‑Swin · SSM‑CNN · MFA‑RF
- └ Temperature Scaling + Auto Weighting + Speech‑type Gated Soft Voting
+- Temperature Scaling + Auto Weighting + Speech‑type Gated Soft Voting
 결과: /home/ai/said/model_ensemble/checkpoint
 
-* calibration(split==val) 데이터로
+calibration(split==val) 데이터로
   1) Temperature(T*) 추정  (models마다)
   2) Speech‑type 별(Spontaneous / Fixed) 모델 성능(UAR) → 가중치 산출
 
 * test split에 보정확률 + 가중치 적용 → 앙상블
-* 전체 / task‑wise / group‑wise 결과 + confusion matrix + bar plot 저장
 """
 import os, argparse, json, warnings
 from pathlib import Path
@@ -29,7 +27,6 @@ from temp_scaling import softmax_np, find_best_T
 
 warnings.filterwarnings("ignore", category=UserWarning)
 
-# ───────────────────────────── CLI ───────────────────────────── #
 ap = argparse.ArgumentParser()
 ap.add_argument("--csv", default="/data/alc_jihan/split_index/merged_data.csv")
 ap.add_argument("--feat_root", default="/data/alc_jihan/HuBERT_feature_merged")
@@ -45,7 +42,7 @@ ap.add_argument("--cnn_ckpt", default=(
 ap.add_argument("--rf_feat_csv",
                 default="/data/alc_jihan/extracted_features_mfa/final_mfa_features2.csv")
 
-ap.add_argument("--w_fixed", default="auto")   # Swin,CNN,RF or "auto"
+ap.add_argument("--w_fixed", default="auto")
 ap.add_argument("--w_spont", default="auto")
 
 ap.add_argument("--calib_split", default="val", choices=["train", "val"])
@@ -61,7 +58,6 @@ os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
 os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# ───────────────────── Helper ───────────────────── #
 
 def save_cm(y_true, y_pred, path):
     cm = confusion_matrix(y_true, y_pred)
@@ -71,7 +67,6 @@ def save_cm(y_true, y_pred, path):
     plt.xlabel("Predicted"); plt.ylabel("True")
     plt.tight_layout(); plt.savefig(path); plt.close()
 
-# ───────────────────── 메타 정보 로딩 ───────────────────── #
 
 df = pd.read_csv(args.csv)
 
@@ -86,7 +81,6 @@ FN_TEST = df_test["FileName"].tolist()
 Y_TRUE  = (df_test["Class"] == "Intoxicated").astype(int).tolist()
 TASKS   = df_test["Task"].tolist()
 
-# ───────────────────── 1) Swin ───────────────────── #
 print("⇒ Swin inference (calibration + test)")
 swin = Swin1D(max_length=args.max_len, window_size=32, dim=1024,
               feature_dim=1024, num_swin_layers=2,
@@ -94,7 +88,6 @@ swin = Swin1D(max_length=args.max_len, window_size=32, dim=1024,
 swin.load_state_dict(torch.load(args.swin_ckpt, map_location=DEVICE))
 swin.eval()
 
-# Calibration logits
 cal_feat_paths = [os.path.join(args.feat_root, fn + ".pt") for fn in FN_CAL]
 ds_cal_swin = SegmentedAudioDataset(cal_feat_paths, Y_CAL, max_seq_length=args.max_len)
 ld_cal_swin = DataLoader(ds_cal_swin, batch_size=64, shuffle=False,
@@ -107,7 +100,6 @@ logits_cal_swin = np.concatenate(logits_cal_swin, axis=0)
 T_SWIN = find_best_T(logits_cal_swin, np.array(Y_CAL))
 print(f"  ↳ best T_swin = {T_SWIN:.2f}")
 
-# Test probs
 feat_paths_test = [os.path.join(args.feat_root, fn + ".pt") for fn in FN_TEST]
 ds_test_swin = SegmentedAudioDataset(feat_paths_test, Y_TRUE, max_seq_length=args.max_len)
 ld_test_swin = DataLoader(ds_test_swin, batch_size=64, shuffle=False,
@@ -122,7 +114,6 @@ with torch.no_grad():
             probs_swin[FN_TEST[idx + i]] = prob[i]
         idx += prob.shape[0]
 
-# ───────────────────── 2) CNN ───────────────────── #
 print("⇒ CNN inference (calibration + test)")
 cnn = AlcoholCNN().to(DEVICE)
 cnn.load_state_dict(torch.load(args.cnn_ckpt, map_location=DEVICE))
@@ -139,8 +130,6 @@ logits_cal_cnn = np.concatenate(logits_cal_cnn, axis=0)
 T_CNN = find_best_T(logits_cal_cnn, np.array(Y_CAL_CNN))
 print(f"  ↳ best T_cnn  = {T_CNN:.2f}")
 
-# Test
-
 ds_test_cnn = AlcoholDataset(args.csv, args.img_root, split="test")
 ld_test_cnn = DataLoader(ds_test_cnn, batch_size=256, shuffle=False, num_workers=8)
 FN_TEST_CNN = ds_test_cnn.fnames
@@ -154,7 +143,6 @@ with torch.no_grad():
             probs_cnn[FN_TEST_CNN[idx + i]] = prob[i]
         idx += prob.shape[0]
 
-# ───────────────────── 3) RF (sigmoid calibration) ───────────────────── #
 print("⇒ RF training + calibration + test")
 rf_df = pd.read_csv(args.rf_feat_csv)
 rf_df["Class"] = rf_df["Class"].map({"Sober": 0, "Intoxicated": 1})
@@ -183,14 +171,12 @@ missing = set(FN_TEST) - set(probs_rf.keys())
 if missing:
     print(f"[RF] Warning: {len(missing)} test files had no RF features.")
 
-# ───────────────────── 4) Auto Weight 계산 ───────────────────── #
 print("⇒ Auto weight estimation (UAR 기반)")
-# per‑group, per‑model 예측 → UAR
 MODELS = ["swin", "cnn", "rf"]
 model_probs_cal = {m: [] for m in MODELS}
 for fn in FN_CAL:
     model_probs_cal["swin"].append(softmax_np(logits_cal_swin[FN_CAL.index(fn)][None] / T_SWIN)[0])
-    # CNN 로그 저장
+    # CNN
     idx_img = ds_cal_cnn.fnames.index(fn) if fn in ds_cal_cnn.fnames else None
     model_probs_cal["cnn"].append(
         softmax_np(logits_cal_cnn[idx_img][None] / T_CNN)[0] if idx_img is not None else None)
@@ -201,7 +187,6 @@ for fn in FN_CAL:
     else:
         model_probs_cal["rf"].append(None)
 
-# helper to compute uar
 
 def _uar_from_probs(prob_list, y_true):
     y_pred = [int(p[1] > p[0]) for p in prob_list]
@@ -209,7 +194,6 @@ def _uar_from_probs(prob_list, y_true):
 
 W_FIXED, W_SPONT = None, None
 if args.w_fixed == "auto" or args.w_spont == "auto":
-    # split calibration indices
     idx_spont, idx_fixed = [], []
     for i, t in enumerate(TASKS_CAL):
         (idx_spont if t in SPONT_SET else idx_fixed).append(i)
@@ -243,7 +227,6 @@ else:
 print(f"  ↳ W_FIXED  = {W_FIXED.round(3).tolist()} (Swin,CNN,RF)")
 print(f"  ↳ W_SPONT  = {W_SPONT.round(3).tolist()} (Swin,CNN,RF)")
 
-# ───────────────────── 5) Ensemble Voting (test) ───────────── #
 Y_PRED, PROBS_FINAL = [], []
 for fn, task in zip(FN_TEST, TASKS):
     p_swin = probs_swin[fn]
@@ -265,7 +248,6 @@ for fn, task in zip(FN_TEST, TASKS):
     PROBS_FINAL.append(p_final)
     Y_PRED.append(int(p_final[1] > p_final[0]))
 
-# ───────────────────── 6) 전체 성능 ───────────── #
 acc = accuracy_score(Y_TRUE, Y_PRED)
 uar = recall_score(Y_TRUE, Y_PRED, average="macro")
 f1  = f1_score(Y_TRUE, Y_PRED, average="macro")
@@ -281,7 +263,6 @@ np.savez_compressed(SAVE_DIR / "probs_ensemble_temp_auto.npz",
                     probs=np.stack(PROBS_FINAL),
                     preds=np.array(Y_PRED), trues=np.array(Y_TRUE))
 
-# ───────────────────── 7) Task‑wise Performance ───────────── #
 print("⇒ Task‑wise / Group‑wise plots 저장")
 
 task_metrics = {}
@@ -316,7 +297,6 @@ plt.xlabel("Task"); plt.ylabel("Score"); plt.title("Task‑wise Performance (Tem
 plt.legend(); plt.tight_layout()
 plt.savefig(SAVE_DIR / "task_performance_temp_auto.png"); plt.close()
 
-# ───────────────────── Group‑wise ───────────── #
 grp_names = ["Spontaneous Speech", "Fixed Text Speech"]
 idx_spont = [i for i, t in enumerate(TASKS) if t in SPONT_SET]
 idx_fixed = [i for i, t in enumerate(TASKS) if t in FIXED_SET]
@@ -349,7 +329,6 @@ plt.xlabel("Speech Type"); plt.ylabel("Score"); plt.title("Group‑wise Performa
 plt.legend(); plt.tight_layout()
 plt.savefig(SAVE_DIR / "group_performance_temp_auto.png"); plt.close()
 
-# ───────────────────── 요약 텍스트 ───────────── #
 with open(SAVE_DIR / "task_group_metrics_temp_auto.txt", "w") as f:
     f.write("=== Task‑wise ===\n")
     for t in tasks_sorted:

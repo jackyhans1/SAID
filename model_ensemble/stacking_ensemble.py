@@ -1,22 +1,8 @@
-#!/usr/bin/env python
-"""
-Stacking Ensemble (LogisticRegression) + Threshold Search
-──────────────────────────────────────────────────────────
-① validation split에서:
-     • Swin + CNN + RF softmax 확률(6-dim) → 메타-모델(LogReg) 학습
-     • Macro-F1 최대화하는 threshold ∈ [0.1 … 0.9] 탐색
-② test split에 적용
-③ 전체 / Task-wise / Group-wise 지표 + 혼동행렬 + 막대그래프 저장
-
-필수 파일 (checkpoint 폴더):
-  probs_swin_val.npz,  probs_cnn_val.npz,  probs_rf_val.npz
-  probs_swin_test.npz, probs_cnn_test.npz, probs_rf_test.npz
-"""
+# Stacking Ensemble for Intoxication Detection
 import os, json, argparse, joblib, numpy as np, pandas as pd, matplotlib.pyplot as plt, seaborn as sns
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, recall_score, f1_score, confusion_matrix
 
-# ───────────────────────── 경로 설정 ───────────────────────── #
 CKPT = "/home/ai/said/model_ensemble/checkpoint"
 CSV  = "/data/alc_jihan/split_index/merged_data.csv"
 os.makedirs(CKPT, exist_ok=True)
@@ -24,7 +10,6 @@ os.makedirs(CKPT, exist_ok=True)
 SPONT = {"monologue","dialogue","spontaneous_command"}
 FIXED = {"number","read_command","address","tongue_twister"}
 
-# ─────────────────────── 유틸 함수 ──────────────────────── #
 def load_npz(model:str, split:str):
     d = np.load(f"{CKPT}/probs_{model}_{split}.npz", allow_pickle=False)
     fn = [os.path.splitext(x)[0] for x in d["fnames"].astype(str)]
@@ -39,7 +24,6 @@ def make_xy(split:str, prob_s, prob_c, prob_r):
     for f in fn:
         ps = prob_s.get(f); pc = prob_c.get(f); pr = prob_r.get(f)
         if ps is None or pc is None or pr is None:
-            # 없는 확률 → [0.5,0.5]
             missing += 1
             ps = ps if ps is not None else np.array([0.5,0.5])
             pc = pc if pc is not None else np.array([0.5,0.5])
@@ -69,23 +53,19 @@ def bar_plot(x_labels, metrics, title, path):
     plt.title(title); plt.ylabel("Score"); plt.legend(); plt.tight_layout()
     plt.savefig(path); plt.close()
 
-# ──────────────────────── 1. 확률 로드 ─────────────────────── #
 prob_swin_val = load_npz("swin","val");  prob_swin_tst = load_npz("swin","test")
 prob_cnn_val  = load_npz("cnn","val");   prob_cnn_tst  = load_npz("cnn","test")
 prob_rf_val   = load_npz("rf","val");    prob_rf_tst   = load_npz("rf","test")
 
-# ──────────────────────── 2. 데이터 구성 ───────────────────── #
 X_val,y_val,_,_   = make_xy("val",  prob_swin_val, prob_cnn_val, prob_rf_val)
 X_tst,y_tst,f_tst,t_tst = make_xy("test", prob_swin_tst, prob_cnn_tst, prob_rf_tst)
 
-# ──────────────────────── 3. 메타 학습 ─────────────────────── #
 meta = LogisticRegression(max_iter=1000,
-                          class_weight={0:1,1:3},   # Intox 가중치 ↑
+                          class_weight={0:1,1:3},  
                           solver="liblinear")
 meta.fit(X_val, y_val)
 joblib.dump(meta, f"{CKPT}/stack_meta.joblib")
 
-# ─────────── 4. Threshold Search (val) ──────────── #
 best_t, best_f1 = 0.5, 0
 val_prob = meta.predict_proba(X_val)[:,1]
 for t in np.linspace(0.1,0.9,17):
@@ -95,7 +75,6 @@ for t in np.linspace(0.1,0.9,17):
         best_f1, best_t = f1, t
 print(f"[INFO] Best threshold @val = {best_t:.2f}  (F1={best_f1:.4f})")
 
-# ──────────────────────── 5. 테스트 ──────────────────────── #
 prob_tst = meta.predict_proba(X_tst)[:,1]
 pred_tst = (prob_tst > best_t).astype(int)
 
@@ -110,7 +89,6 @@ with open(f"{CKPT}/stacking_metrics.txt","w") as f:
 cm = confusion_matrix(y_tst, pred_tst)
 save_confusion(cm, f"{CKPT}/stacking_confusion.png")
 
-# ─────────── 6. Task-wise & Group-wise ─────────── #
 task_dict = {}
 for fn,task,pred,yt in zip(f_tst, t_tst, pred_tst, y_tst):
     d = task_dict.setdefault(task, {"y":[], "p":[]})
@@ -126,7 +104,6 @@ bar_plot(labels, [task_acc,task_uar,task_f1],
          "Task-wise Performance (Stacking)",
          f"{CKPT}/stacking_task_performance.png")
 
-# Group-wise
 idx_sp  = [i for i,t in enumerate(t_tst) if t in SPONT]
 idx_fx  = [i for i,t in enumerate(t_tst) if t in FIXED]
 def grp(indices):
