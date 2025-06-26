@@ -21,7 +21,7 @@ parser.add_argument("--csv",      default="/data/alc_jihan/split_index/merged_da
 parser.add_argument("--feat_root",default="/data/alc_jihan/HuBERT_feature_merged")
 parser.add_argument("--img_root", default="/data/alc_jihan/morphology_thresholded_97_resized")
 parser.add_argument("--rf_csv",   default="/data/alc_jihan/extracted_features_mfa/final_mfa_features2.csv")
-parser.add_argument("--save_dir", default="/home/ai/said/data_split_change/checkpoint_early_fusion")
+parser.add_argument("--save_dir", default="/home/ai/said/data_split_change/checkpoint_early_fusion2")
 parser.add_argument("--epochs",   type=int, default=60)
 parser.add_argument("--batch",    type=int, default=32)
 parser.add_argument("--patience", type=int, default=50)
@@ -30,7 +30,7 @@ args = parser.parse_args()
 os.makedirs(args.save_dir, exist_ok=True)
 
 os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"]="2"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 
 train_ds = early_dataset.EarlyFusionDataset(args.csv,args.feat_root,args.img_root,

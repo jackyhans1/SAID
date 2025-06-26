@@ -1,0 +1,15 @@
+dialogue
+  Accuracy: 0.6407
+  UAR:      0.5962
+  Macro F1: 0.5829
+
+=== Group-wise Performance ===
+Spontaneous Speech
+  Accuracy: 0.6407
+  UAR: 0.5962
+  Macro F1: 0.5829
+
+Fixed Text Speech
+  Accuracy: 0.0000
+  UAR: 0.0000
+  Macro F1: 0.0000

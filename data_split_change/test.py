@@ -5,14 +5,14 @@ from dataset import AlcoholDataset
 from models import AlcoholCNN
 
 os.environ["CUDA_DEVICE_ORDER"]    = "PCI_BUS_ID"
-os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--csv", default="/data/alc_jihan/split_index/merged_data_new_split.csv")
 parser.add_argument("--img_root", default="/data/alc_jihan/morphology_thresholded_97_resized")
-parser.add_argument("--ckpt", default="/home/ai/said/data_split_change/checkpoint_cnn_all_data/best.pth")
-parser.add_argument("--save_dir", default="/home/ai/said/data_split_change/checkpoint_cnn_all_data")
+parser.add_argument("--ckpt", default="/home/ai/said/data_split_change/checkpoint_cnn_all_data_layer7/best.pth")
+parser.add_argument("--save_dir", default="/home/ai/said/data_split_change/checkpoint_cnn_all_data_layer7")
 args = parser.parse_args()
 
 ds = AlcoholDataset(args.csv, args.img_root, "test")

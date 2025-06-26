@@ -1,0 +1,15 @@
+spontaneous_command
+  Accuracy: 0.7414
+  UAR:      0.7380
+  Macro F1: 0.7186
+
+=== Group-wise Performance ===
+Spontaneous Speech
+  Accuracy: 0.7414
+  UAR: 0.7380
+  Macro F1: 0.7186
+
+Fixed Text Speech
+  Accuracy: 0.0000
+  UAR: 0.0000
+  Macro F1: 0.0000

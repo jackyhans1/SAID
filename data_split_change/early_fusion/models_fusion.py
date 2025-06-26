@@ -1,14 +1,29 @@
 import torch, torch.nn as nn, torch.nn.functional as F
 from swin_transformer_1d import Swin1D
-from models import AlcoholCNN     # 기존 CNN
+#from models import AlcoholCNN     # 기존 CNN
+from models2 import AlcoholCNN     # 기존 CNN
 
+# class CNNBackbone(nn.Module):
+#     """AlcoholCNN 마지막 FC 제거 → 512-d 벡터 반환"""
+#     def __init__(self):
+#         super().__init__()
+#         base = AlcoholCNN()
+#         self.features = nn.Sequential(
+#             base.stem, base.layer1, base.layer2, base.layer3, base.layer4,
+#             base.conv_final, base.bn_final, nn.ReLU(inplace=True))
+#         self.pool = nn.AdaptiveAvgPool2d(1)  # (B,512,1,1)
+#     def forward(self,x):
+#         f = self.features(x)      # (B,512,H,W)
+#         f = self.pool(f).flatten(1)   # (B,512)
+#         return f
+    
 class CNNBackbone(nn.Module):
     """AlcoholCNN 마지막 FC 제거 → 512-d 벡터 반환"""
     def __init__(self):
         super().__init__()
         base = AlcoholCNN()
         self.features = nn.Sequential(
-            base.stem, base.layer1, base.layer2, base.layer3, base.layer4,
+            base.stem, base.layer1, base.layer2, base.layer3,
             base.conv_final, base.bn_final, nn.ReLU(inplace=True))
         self.pool = nn.AdaptiveAvgPool2d(1)  # (B,512,1,1)
     def forward(self,x):

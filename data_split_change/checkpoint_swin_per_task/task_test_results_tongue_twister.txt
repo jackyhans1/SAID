@@ -1,0 +1,15 @@
+tongue_twister
+  Accuracy: 0.7596
+  UAR:      0.7759
+  Macro F1: 0.7440
+
+=== Group-wise Performance ===
+Spontaneous Speech
+  Accuracy: 0.0000
+  UAR: 0.0000
+  Macro F1: 0.0000
+
+Fixed Text Speech
+  Accuracy: 0.7596
+  UAR: 0.7759
+  Macro F1: 0.7440
